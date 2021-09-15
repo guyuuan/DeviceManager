@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
 
     private var touchCount by mutableStateOf(0)
 
+    @ExperimentalFoundationApi
     @ExperimentalAnimationApi
     @ExperimentalPagerApi
     @ExperimentalMaterialApi
