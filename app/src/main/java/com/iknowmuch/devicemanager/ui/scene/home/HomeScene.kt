@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalContentColor
@@ -26,6 +29,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -42,6 +46,7 @@ import com.google.accompanist.insets.navigationBarsPadding
 import com.google.accompanist.insets.statusBarsPadding
 import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.ui.LocalNavController
+import com.iknowmuch.devicemanager.ui.Scene
 import com.iknowmuch.devicemanager.ui.theme.BlueBrush
 import com.iknowmuch.devicemanager.ui.theme.GreenBrush
 import com.iknowmuch.devicemanager.ui.theme.SubTitle1TextColor
@@ -56,7 +61,10 @@ import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
 @Composable
 fun HomeScene(navController: NavController = LocalNavController.current) {
     val viewModel = hiltViewModel<HomeViewModel>()
-    Box(Modifier.fillMaxSize()) {
+    Box(
+        Modifier
+            .fillMaxSize()
+    ) {
         TopBackground()
         Column(
             Modifier
@@ -68,7 +76,8 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
             TopBar(
                 viewModel = viewModel, modifier = Modifier
                     .fillMaxWidth()
-                    .padding(32.dp)
+                    .padding(32.dp),
+                navController
             )
             UsingInstructionsCard(
                 Modifier
@@ -225,7 +234,7 @@ fun TopBackground() {
 }
 
 @Composable
-fun TopBar(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
+fun TopBar(viewModel: HomeViewModel, modifier: Modifier = Modifier, navController: NavController) {
     CompositionLocalProvider(
         LocalContentColor provides Color.White
     ) {
@@ -250,7 +259,13 @@ fun TopBar(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
                     )
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
+                    navController.navigate(Scene.More.id)
+                }) {
                 Text(text = "更多", fontSize = 40.sp)
                 Spacer(modifier = Modifier.width(20.dp))
                 Image(

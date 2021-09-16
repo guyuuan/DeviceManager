@@ -5,6 +5,7 @@ import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkRequest
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -42,8 +43,8 @@ import com.iknowmuch.devicemanager.mqtt.MQTTStatus
 import com.iknowmuch.devicemanager.ui.LocalNavController
 import com.iknowmuch.devicemanager.ui.Scene
 import com.iknowmuch.devicemanager.ui.dialog.AppConfigDialog
-import com.iknowmuch.devicemanager.ui.theme.ErrorRed
 import com.iknowmuch.devicemanager.ui.theme.CorrectBlue
+import com.iknowmuch.devicemanager.ui.theme.ErrorRed
 import kotlinx.coroutines.delay
 
 /**
@@ -127,7 +128,7 @@ fun LoadingScene(navController: NavController = LocalNavController.current) {
         delay(viewModel.autoJumpTime * 1000L)
         if (!showConfigDialog) {
             navController.navigate(Scene.Home.id) {
-                popUpTo(Scene.Loading.id) { inclusive }
+                popUpTo(Scene.Loading.id) { inclusive = true }
             }
         }
     }
@@ -170,7 +171,7 @@ fun InfoDetail(title: String, content: String, contentColor: Color = Color.Unspe
         Text(
             text = content,
             color = contentColor,
-            modifier =Modifier.weight(1f),
+            modifier = Modifier.weight(1f),
             style = style.copy(color = style.color.copy(alpha = 0.8f))
         )
     }

@@ -1,5 +1,6 @@
 package com.iknowmuch.devicemanager
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -7,8 +8,8 @@ import android.os.Looper
 import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
@@ -22,20 +23,25 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.iknowmuch.devicemanager.mqtt.MqttService
+import com.iknowmuch.devicemanager.sp.SerialPortManager
 import com.iknowmuch.devicemanager.ui.Router
 import com.iknowmuch.devicemanager.ui.dialog.AppGlobalInfoDialog
 import com.iknowmuch.devicemanager.ui.theme.AppTheme
+import com.permissionx.guolindev.PermissionX
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.ArrayList
+import java.util.HashMap
 
 private const val TAG = "MainActivity"
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val windowInsetsController by lazy {
         WindowInsetsControllerCompat(window, window.decorView)
     }
 
     private var touchCount by mutableStateOf(0)
+//    private val serialPortManager = SerialPortManager()
 
     @ExperimentalFoundationApi
     @ExperimentalAnimationApi
@@ -47,23 +53,32 @@ class MainActivity : ComponentActivity() {
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-        setContent {
-            AppTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
-                    Router()
-                }
-                if (touchCount > 7) {
-                    AppGlobalInfoDialog(onDismissRequest = {
-                        touchCount = 0
-                    }) {
-                        touchCount = 0
-                        finish()
+        PermissionX.init(this).permissions(
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        ).request { allGranted, _, _ ->
+            if (allGranted) {
+                setContent {
+                    AppTheme {
+                        // A surface container using the 'background' color from the theme
+                        Surface(color = MaterialTheme.colors.background) {
+                            Router()
+                        }
+                        if (touchCount > 7) {
+                            AppGlobalInfoDialog(onDismissRequest = {
+                                touchCount = 0
+                            }) {
+                                touchCount = 0
+                                finish()
+                            }
+                        }
                     }
                 }
+                startService(Intent(this, MqttService::class.java))
+            } else {
+                finish()
             }
         }
-        startService(Intent(this, MqttService::class.java))
+//        serialPortManager.run()
     }
 
     private val myHandler = Handler(Looper.getMainLooper())
