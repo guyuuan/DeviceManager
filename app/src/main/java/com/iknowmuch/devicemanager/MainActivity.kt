@@ -23,14 +23,11 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.iknowmuch.devicemanager.mqtt.MqttService
-import com.iknowmuch.devicemanager.sp.SerialPortManager
 import com.iknowmuch.devicemanager.ui.Router
 import com.iknowmuch.devicemanager.ui.dialog.AppGlobalInfoDialog
 import com.iknowmuch.devicemanager.ui.theme.AppTheme
 import com.permissionx.guolindev.PermissionX
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.ArrayList
-import java.util.HashMap
 
 private const val TAG = "MainActivity"
 
@@ -41,7 +38,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var touchCount by mutableStateOf(0)
-//    private val serialPortManager = SerialPortManager()
 
     @ExperimentalFoundationApi
     @ExperimentalAnimationApi
@@ -78,7 +74,6 @@ class MainActivity : AppCompatActivity() {
                 finish()
             }
         }
-//        serialPortManager.run()
     }
 
     private val myHandler = Handler(Looper.getMainLooper())
@@ -88,7 +83,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
         val size =
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 150f, resources.displayMetrics)
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 350f, resources.displayMetrics)
         val screenWidth = resources.displayMetrics.widthPixels
         if (event?.action == MotionEvent.ACTION_UP) {
             myHandler.removeCallbacks(clearCountRunnable)

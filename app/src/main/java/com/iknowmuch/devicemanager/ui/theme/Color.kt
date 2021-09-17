@@ -24,3 +24,5 @@ val BlueBrush = Brush.linearGradient(
 )
 
 val SubTitle1TextColor = Color(0xFF242424)
+
+val BorderBrush = Brush.verticalGradient(listOf(ThemeBlue, ThemeBlue.copy(alpha = 0f)))

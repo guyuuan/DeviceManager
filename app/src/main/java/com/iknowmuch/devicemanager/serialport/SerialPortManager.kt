@@ -1,13 +1,10 @@
-package com.iknowmuch.devicemanager.sp
+package com.iknowmuch.devicemanager.serialport
 
 import android.util.Log
-import android_serialport_api.SerialPort
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileInputStream
 
 /**
  *@author: Chen
@@ -17,15 +14,15 @@ import java.io.FileInputStream
 private const val TAG = "SerialPortManager"
 
 class SerialPortManager {
-    private val serialPort = SerialPort(File("/dev/usb_accessory"), 115200, 0)
+    //    private val serialPort = SerialPort(File("/dev/usb_accessory"), 115200, 0)
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     fun run() {
         coroutineScope.launch(Dispatchers.IO) {
-            val input = (serialPort.inputStream as FileInputStream)
+//            val input = (serialPort.inputStream as FileInputStream)
             while (true) {
                 Log.d(
-                    TAG, "run: ${input.readBytes().toString(Charsets.UTF_8)}"
+                    TAG, "run: $"
                 )
                 delay(1000L)
             }

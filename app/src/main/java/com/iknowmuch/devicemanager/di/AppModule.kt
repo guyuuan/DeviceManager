@@ -45,7 +45,8 @@ object AppModule {
                 MoshiConverterFactory.create(
                     moshi
                 )
-            ).build()
+            )
+            .build()
     }
 
     @Provides

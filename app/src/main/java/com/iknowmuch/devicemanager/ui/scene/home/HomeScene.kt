@@ -5,7 +5,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,8 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalContentColor
@@ -29,7 +26,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -39,18 +35,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.insets.navigationBarsPadding
 import com.google.accompanist.insets.statusBarsPadding
 import com.iknowmuch.devicemanager.R
+import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.ui.LocalNavController
-import com.iknowmuch.devicemanager.ui.Scene
 import com.iknowmuch.devicemanager.ui.theme.BlueBrush
 import com.iknowmuch.devicemanager.ui.theme.GreenBrush
 import com.iknowmuch.devicemanager.ui.theme.SubTitle1TextColor
 import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
+import com.iknowmuch.devicemanager.utils.drawColorShadow
 
 /**
  *@author: Chen
@@ -87,7 +83,7 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
                     .height(316.dp)
             )
             CabinetDoorList(
-                data = listOf(1, 2, 3, 4, 5, 6),
+                data = viewModel.cabinetDoorList,
                 Modifier
                     .padding(horizontal = 18.dp)
                     .fillMaxWidth()
@@ -190,29 +186,51 @@ fun BottomButton(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
 
 @ExperimentalFoundationApi
 @Composable
-fun CabinetDoorList(data: List<Any>, modifier: Modifier = Modifier) {
+fun CabinetDoorList(data: List<CabinetDoor>, modifier: Modifier = Modifier) {
     LazyVerticalGrid(cells = GridCells.Fixed(2), modifier = modifier) {
-        itemsIndexed(data) { i, _ ->
-            Box(
-                Modifier
+        itemsIndexed(data) { _, item ->
+            CabinetDoorItem(
+                data = item, modifier = Modifier
+                    .drawColorShadow(
+                        color = ThemeBlue,
+                        padding = 14.dp,
+                        alpha = 0.25f,
+                        shadowSize = 2.dp
+                    )
                     .padding(14.dp)
                     .fillMaxWidth()
-                    .aspectRatio(494 / 273f) then if (i % 2 == 0) {
-                    Modifier.background(
-                        color = ThemeBlue,
-                        shape = MaterialTheme.shapes.medium
-                    )
-                } else {
-                    Modifier.background(
-                        brush = GreenBrush,
-                        shape = MaterialTheme.shapes.medium
-                    )
-                }
-
-            ) {
-
-            }
+                    .aspectRatio(494 / 273f)
+            )
         }
+    }
+}
+
+@Composable
+fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
+    val boxModifier = when (data.status) {
+        CabinetDoor.Status.Idle, CabinetDoor.Status.Booked -> {
+            Modifier.background(
+                brush = GreenBrush, shape = MaterialTheme.shapes.medium
+            )
+        }
+        CabinetDoor.Status.Empty -> {
+            Modifier.background(
+                color = ThemeBlue, shape = MaterialTheme.shapes.medium
+            )
+        }
+        CabinetDoor.Status.Changing,
+        CabinetDoor.Status.Error,
+        CabinetDoor.Status.Fault -> {
+            Modifier.background(
+                color = MaterialTheme.colors.background,
+                shape = MaterialTheme.shapes.medium
+            )
+        }
+    }
+    Box(
+        modifier = modifier then boxModifier
+    ) {
+
     }
 }
 
@@ -259,20 +277,20 @@ fun TopBar(viewModel: HomeViewModel, modifier: Modifier = Modifier, navControlle
                     )
                 }
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }) {
-                    navController.navigate(Scene.More.id)
-                }) {
-                Text(text = "更多", fontSize = 40.sp)
-                Spacer(modifier = Modifier.width(20.dp))
-                Image(
-                    painter = painterResource(id = R.drawable.ic_circle_right_arrow),
-                    contentDescription = null
-                )
-            }
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically,
+//                modifier = Modifier.clickable(
+//                    indication = null,
+//                    interactionSource = remember { MutableInteractionSource() }) {
+//                    navController.navigate(Scene.More.id)
+//                }) {
+//                Text(text = "更多", fontSize = 40.sp)
+//                Spacer(modifier = Modifier.width(20.dp))
+//                Image(
+//                    painter = painterResource(id = R.drawable.ic_circle_right_arrow),
+//                    contentDescription = null
+//                )
+//            }
         }
     }
 }
