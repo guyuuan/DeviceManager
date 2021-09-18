@@ -218,7 +218,7 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
         }
         CabinetDoor.Status.Empty -> {
             Modifier.background(
-                color = ThemeBlue, shape = MaterialTheme.shapes.medium
+                brush = BlueBrush, shape = MaterialTheme.shapes.medium
             )
         }
         CabinetDoor.Status.Changing,
@@ -230,7 +230,7 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
             )
         }
     }
-    var spacerColor = Color.Unspecified
+    val spacerColor: Color
     CompositionLocalProvider(
         LocalContentColor provides when (data.status) {
             CabinetDoor.Status.Changing,
@@ -255,8 +255,8 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    var leftColor = LocalContentColor.current
-                    var rightColor = LocalContentColor.current
+                    val leftColor: Color
+                    val rightColor: Color
                     when (data.status) {
                         CabinetDoor.Status.Changing,
                         CabinetDoor.Status.Error,
@@ -298,7 +298,6 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                         .height(3.dp)
                         .background(color = spacerColor)
                 )
-
                 Text(
                     text = stringResource(R.string.text_device_code).format(data.deviceCode),
                     style = MaterialTheme.typography.body1
@@ -311,10 +310,11 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Spacer(
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_power_full),
                         modifier = Modifier
                             .padding(end = 20.dp)
-                            .size(width = 76.dp, height = 41.dp)
+                            .size(width = 76.dp, height = 41.dp), contentDescription = null
                     )
                     Text(text = "${data.devicePower}%", style = MaterialTheme.typography.body2)
                 }
