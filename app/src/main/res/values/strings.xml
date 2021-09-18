@@ -23,4 +23,7 @@
     <string name="text_status_booked">%s已预约</string>
     <string name="text_status_fault">故障</string>
     <string name="text_status_error">异常</string>
+    <string name="text_cabinet_door_number">柜门: %d</string>
+    <string name="text_device_code">探头编码: %s</string>
+    <string name="text_available_time">可用时长: %.1f小时</string>
 </resources>

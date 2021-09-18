@@ -16,7 +16,7 @@ data class CabinetDoor(
     val availableTime: Float?,
     @IntRange(from = 0, to = 100) val devicePower: Int
 ) {
-    sealed class Status(@StringRes id: Int) {
+    sealed class Status(@StringRes val  id: Int) {
         object Empty : Status(R.string.text_status_empty)
         object Changing : Status(R.string.text_status_changing)
         object Idle : Status(R.string.text_status_idle)

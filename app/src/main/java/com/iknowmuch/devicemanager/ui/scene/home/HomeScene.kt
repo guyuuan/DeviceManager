@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,8 +44,9 @@ import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.ui.LocalNavController
 import com.iknowmuch.devicemanager.ui.theme.BlueBrush
+import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
+import com.iknowmuch.devicemanager.ui.theme.ErrorRed
 import com.iknowmuch.devicemanager.ui.theme.GreenBrush
-import com.iknowmuch.devicemanager.ui.theme.SubTitle1TextColor
 import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
 import com.iknowmuch.devicemanager.utils.drawColorShadow
 
@@ -114,7 +116,7 @@ fun UsingInstructionsCard(modifier: Modifier = Modifier) {
                 text = "如何使用",
                 style = MaterialTheme.typography.subtitle1,
                 fontWeight = FontWeight.ExtraBold,
-                color = SubTitle1TextColor
+                color = DefaultBlackTextColor
             )
             Spacer(modifier = Modifier.height(4.dp))
             UsingInstructionItem(text = "如何借:点击底部的“借”按钮——用微信扫一扫——进入小程序")
@@ -141,7 +143,7 @@ fun UsingInstructionItem(text: String, modifier: Modifier = Modifier) {
             Modifier.size(29.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = text, style = MaterialTheme.typography.body2, color = SubTitle1TextColor)
+        Text(text = text, style = MaterialTheme.typography.body2, color = DefaultBlackTextColor)
     }
 }
 
@@ -195,7 +197,8 @@ fun CabinetDoorList(data: List<CabinetDoor>, modifier: Modifier = Modifier) {
                         color = ThemeBlue,
                         padding = 14.dp,
                         alpha = 0.25f,
-                        shadowSize = 2.dp
+                        shadowSize = 2.dp,
+                        offsetY = 8.dp
                     )
                     .padding(14.dp)
                     .fillMaxWidth()
@@ -227,9 +230,96 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
             )
         }
     }
-    Box(
-        modifier = modifier then boxModifier
+    var spacerColor = Color.Unspecified
+    CompositionLocalProvider(
+        LocalContentColor provides when (data.status) {
+            CabinetDoor.Status.Changing,
+            CabinetDoor.Status.Error,
+            CabinetDoor.Status.Fault -> {
+                spacerColor = Color(0xFFE7E7E7)
+                DefaultBlackTextColor
+            }
+            else -> {
+                spacerColor = Color(0x5EFFFFFF)
+                Color.White
+            }
+        }
     ) {
+        Box(
+            modifier = modifier then boxModifier
+        ) {
+
+            Column(modifier = Modifier.padding(20.dp)) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    var leftColor = LocalContentColor.current
+                    var rightColor = LocalContentColor.current
+                    when (data.status) {
+                        CabinetDoor.Status.Changing,
+                        CabinetDoor.Status.Error,
+                        CabinetDoor.Status.Fault -> {
+                            leftColor = ThemeBlue
+                            rightColor = if (data.status != CabinetDoor.Status.Changing) {
+                                ErrorRed
+                            } else {
+                                leftColor
+                            }
+                        }
+                        CabinetDoor.Status.Booked -> {
+                            leftColor = Color.White
+                            rightColor = ThemeBlue
+                        }
+                        else -> {
+                            leftColor = Color.White
+                            rightColor = Color.White
+                        }
+                    }
+                    Text(
+                        text = stringResource(R.string.text_cabinet_door_number).format(
+                            data.id
+                        ),
+                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.h6,
+                        color = leftColor
+                    )
+                    Text(
+                        text = stringResource(data.status.id),
+                        style = MaterialTheme.typography.body1, color = rightColor
+                    )
+                }
+
+                Spacer(
+                    modifier = Modifier
+                        .padding(top = 20.dp, bottom = 9.dp)
+                        .fillMaxWidth()
+                        .height(3.dp)
+                        .background(color = spacerColor)
+                )
+
+                Text(
+                    text = stringResource(R.string.text_device_code).format(data.deviceCode),
+                    style = MaterialTheme.typography.body1
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = stringResource(R.string.text_available_time).format(data.availableTime),
+                    style = MaterialTheme.typography.body1
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(
+                        modifier = Modifier
+                            .padding(end = 20.dp)
+                            .size(width = 76.dp, height = 41.dp)
+                    )
+                    Text(text = "${data.devicePower}%", style = MaterialTheme.typography.body2)
+                }
+            }
+        }
 
     }
 }

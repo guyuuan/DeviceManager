@@ -38,7 +38,7 @@ class HomeViewModel @Inject constructor(
         CabinetDoor(
             4, status = CabinetDoor.Status.Error,
             deviceCode = "661903FB",
-            availableTime = 3f,
+            availableTime = 3.5f,
             devicePower = 80
         ),
         CabinetDoor(

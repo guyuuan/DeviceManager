@@ -15,6 +15,6 @@ object Config {
     const val DEFAULT_AUTO_JUMP_TIME = 30
     val DEFAULT_MQTT_SERVER = if (BuildConfig.DEBUG) "10.6.3.126:1883" else "symq.iknowmuch.com"
 
-    val MQTT_TOPIC = "android.cloud.shelf."
+    const val MQTT_TOPIC = "android.cloud.shelf."
     fun getTopic(id: String) = "$MQTT_TOPIC$id"
 }
