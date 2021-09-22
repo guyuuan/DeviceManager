@@ -26,3 +26,5 @@ val BlueBrush = Brush.linearGradient(
 val DefaultBlackTextColor = Color(0xFF242424)
 
 val BorderBrush = Brush.verticalGradient(listOf(ThemeBlue, ThemeBlue.copy(alpha = 0f)))
+
+val BatteryColor = Color(0xFF1EE537)

@@ -68,8 +68,12 @@ class MqttService : LifecycleService() {
                     clientID,
                     mqttServer
                 )
-                if (!client.isConnected) {
-                    mqttManager.connect(client)
+                try {
+                    if (!client.isConnected) {
+                        mqttManager.connect(client)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "startMqtt: ", e)
                 }
                 delay(60 * 1000L)
             }

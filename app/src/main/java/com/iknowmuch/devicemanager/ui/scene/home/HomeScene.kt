@@ -1,5 +1,11 @@
 package com.iknowmuch.devicemanager.ui.scene.home
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -27,8 +33,10 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -43,6 +51,7 @@ import com.google.accompanist.insets.statusBarsPadding
 import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.ui.LocalNavController
+import com.iknowmuch.devicemanager.ui.theme.BatteryColor
 import com.iknowmuch.devicemanager.ui.theme.BlueBrush
 import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
 import com.iknowmuch.devicemanager.ui.theme.ErrorRed
@@ -310,18 +319,59 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_power_full),
-                        modifier = Modifier
-                            .padding(end = 20.dp)
-                            .size(width = 76.dp, height = 41.dp), contentDescription = null
-                    )
+                    BatteryIcon(data = data.devicePower, data.status)
                     Text(text = "${data.devicePower}%", style = MaterialTheme.typography.body2)
                 }
             }
         }
 
     }
+}
+
+@Composable
+fun BatteryIcon(data: Int, status: CabinetDoor.Status) {
+    val percent = if (data != 100 && status == CabinetDoor.Status.Changing) {
+        val infiniteTransition = rememberInfiniteTransition()
+        val animPercent by infiniteTransition.animateFloat(
+            initialValue = data / 100f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = ((1 - data / 100f) * 10000).toInt(),
+                    easing = LinearEasing
+                ),
+                repeatMode = RepeatMode.Restart
+            )
+        )
+        animPercent
+    } else {
+        data / 100f
+    }
+    Box(contentAlignment = Alignment.CenterStart) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_battery_border),
+            modifier = Modifier
+                .padding(end = 20.dp)
+                .size(width = 76.dp, height = 41.dp), contentDescription = null
+        )
+        Canvas(
+            modifier = Modifier
+                .padding(start = 6.dp)
+                .size(width = 58.dp, height = 27.dp)
+        ) {
+            drawRoundRect(
+                BatteryColor,
+                size = size.copy(width = size.width * percent),
+                cornerRadius = CornerRadius(2 / 58f),
+            )
+        }
+    }
+//        Image(
+//            painter = painterResource(id = R.drawable.ic_power_full),
+//            modifier = Modifier
+//                .padding(end = 20.dp)
+//                .size(width = 76.dp, height = 41.dp), contentDescription = null
+//        )
 }
 
 @Composable
