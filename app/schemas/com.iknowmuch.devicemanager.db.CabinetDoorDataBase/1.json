@@ -1,0 +1,70 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "83c1b6449f62b4f74b0dfce175ba9fb7",
+    "entities": [
+      {
+        "tableName": "cabinet_door",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`primaryKey` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `id` INTEGER NOT NULL, `status` INTEGER NOT NULL, `deviceCode` TEXT, `availableTime` REAL, `devicePower` INTEGER NOT NULL, `chargingEndTime` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "primaryKey",
+            "columnName": "primaryKey",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deviceCode",
+            "columnName": "deviceCode",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "availableTime",
+            "columnName": "availableTime",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "devicePower",
+            "columnName": "devicePower",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chargingEndTime",
+            "columnName": "chargingEndTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "primaryKey"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '83c1b6449f62b4f74b0dfce175ba9fb7')"
+    ]
+  }
+}

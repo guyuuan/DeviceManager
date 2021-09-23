@@ -18,37 +18,37 @@ class HomeViewModel @Inject constructor(
     val deviceID by deviceIDPreference
     val cabinetDoorList = listOf(
         CabinetDoor(
-            1, status = CabinetDoor.Status.Idle,
+            id = 1, status = CabinetDoor.Status.Idle,
             deviceCode = "181903FB",
             availableTime = 4f,
             devicePower = 100
         ),
         CabinetDoor(
-            2, status = CabinetDoor.Status.Changing,
+            id = 2, status = CabinetDoor.Status.Charging,
             deviceCode = "141903FB",
             availableTime = 2f,
             devicePower = 50
         ),
         CabinetDoor(
-            3, status = CabinetDoor.Status.Fault,
+            id = 3, status = CabinetDoor.Status.Fault,
             deviceCode = "851903FB",
             availableTime = 3f,
             devicePower = 80
         ),
         CabinetDoor(
-            4, status = CabinetDoor.Status.Error,
+            id = 4, status = CabinetDoor.Status.Error,
             deviceCode = "661903FB",
             availableTime = 3.5f,
             devicePower = 80
         ),
         CabinetDoor(
-            5, status = CabinetDoor.Status.Booked,
+            id = 5, status = CabinetDoor.Status.Booked,
             deviceCode = "181903FB",
             availableTime = 4f,
             devicePower = 100
         ),
         CabinetDoor(
-            6, status = CabinetDoor.Status.Empty,
+            id = 6, status = CabinetDoor.Status.Empty,
             deviceCode = null,
             availableTime = null,
             devicePower = 0

@@ -163,14 +163,14 @@ fun BottomButton(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .weight(1f)
                 .height(204.dp)
+                .clickable { }
                 .background(
                     brush = GreenBrush, shape = MaterialTheme.shapes.medium
-                )
-                .clickable {},
+                ),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "借",
+                text = stringResource(R.string.text_borrow),
                 style = MaterialTheme.typography.h4,
                 color = Color.White,
                 fontWeight = FontWeight.Medium
@@ -181,12 +181,12 @@ fun BottomButton(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .weight(1f)
                 .height(204.dp)
-                .background(brush = BlueBrush, shape = MaterialTheme.shapes.medium)
-                .clickable {},
+                .clickable { }
+                .background(brush = BlueBrush, shape = MaterialTheme.shapes.medium),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "还",
+                text = stringResource(R.string.text_return),
                 style = MaterialTheme.typography.h4,
                 color = Color.White,
                 fontWeight = FontWeight.Medium
@@ -230,7 +230,7 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                 brush = BlueBrush, shape = MaterialTheme.shapes.medium
             )
         }
-        CabinetDoor.Status.Changing,
+        CabinetDoor.Status.Charging,
         CabinetDoor.Status.Error,
         CabinetDoor.Status.Fault -> {
             Modifier.background(
@@ -242,7 +242,7 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
     val spacerColor: Color
     CompositionLocalProvider(
         LocalContentColor provides when (data.status) {
-            CabinetDoor.Status.Changing,
+            CabinetDoor.Status.Charging,
             CabinetDoor.Status.Error,
             CabinetDoor.Status.Fault -> {
                 spacerColor = Color(0xFFE7E7E7)
@@ -267,11 +267,11 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                     val leftColor: Color
                     val rightColor: Color
                     when (data.status) {
-                        CabinetDoor.Status.Changing,
+                        CabinetDoor.Status.Charging,
                         CabinetDoor.Status.Error,
                         CabinetDoor.Status.Fault -> {
                             leftColor = ThemeBlue
-                            rightColor = if (data.status != CabinetDoor.Status.Changing) {
+                            rightColor = if (data.status != CabinetDoor.Status.Charging) {
                                 ErrorRed
                             } else {
                                 leftColor
@@ -308,12 +308,19 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                         .background(color = spacerColor)
                 )
                 Text(
-                    text = stringResource(R.string.text_device_code).format(data.deviceCode),
+                    text = if (data.deviceCode != null) stringResource(R.string.text_device_code).format(
+                        data.deviceCode
+                    ) else stringResource(
+                        id = R.string.text_empty_device_code
+                    ),
                     style = MaterialTheme.typography.body1
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = stringResource(R.string.text_available_time).format(data.availableTime),
+                    text = if (data.availableTime != null) stringResource(R.string.text_available_time).format(
+                        data.availableTime
+                    ) else
+                        stringResource(id = R.string.text_empty_available_time),
                     style = MaterialTheme.typography.body1
                 )
                 Spacer(modifier = Modifier.height(20.dp))
@@ -330,7 +337,7 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
 
 @Composable
 fun BatteryIcon(data: Int, status: CabinetDoor.Status) {
-    val percent = if (data != 100 && status == CabinetDoor.Status.Changing) {
+    val percent = if (data != 100 && status == CabinetDoor.Status.Charging) {
         val infiniteTransition = rememberInfiniteTransition()
         val animPercent by infiniteTransition.animateFloat(
             initialValue = data / 100f,

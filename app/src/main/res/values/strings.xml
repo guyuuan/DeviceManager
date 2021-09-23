@@ -18,7 +18,7 @@
     <string name="text_save">保存</string>
     <string name="text_device_id_format">编码: %s</string>
     <string name="text_status_empty">空</string>
-    <string name="text_status_changing">充电中</string>
+    <string name="text_status_charging">充电中</string>
     <string name="text_status_idle">可借用</string>
     <string name="text_status_booked">%s已预约</string>
     <string name="text_status_fault">故障</string>
@@ -26,4 +26,8 @@
     <string name="text_cabinet_door_number">柜门: %d</string>
     <string name="text_device_code">探头编码: %s</string>
     <string name="text_available_time">可用时长: %.1f小时</string>
+    <string name="text_empty_device_code">探头编码：——</string>
+    <string name="text_empty_available_time">可用时长：——</string>
+    <string name="text_return">还</string>
+    <string name="text_borrow">借</string>
 </resources>

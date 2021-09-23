@@ -1,8 +1,12 @@
 package com.iknowmuch.devicemanager.di
 
+import com.iknowmuch.devicemanager.db.CabinetDoorDataBase
+import com.iknowmuch.devicemanager.repository.CabinetDoorRepository
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 /**
  *@author: Chen
@@ -12,5 +16,12 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 @Module
 object RepositoryModule {
+
+    @Provides
+    @Singleton
+    fun provideCabinetDoorRepository(cabinetDoorDataBase: CabinetDoorDataBase) =
+        synchronized(CabinetDoorRepository::class) {
+            CabinetDoorRepository(cabinetDoorDataBase.getCabinetDoorDao())
+        }
 
 }
