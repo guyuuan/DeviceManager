@@ -18,6 +18,7 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -31,6 +32,11 @@ import dagger.hilt.android.AndroidEntryPoint
 
 private const val TAG = "MainActivity"
 
+@ExperimentalComposeUiApi
+@ExperimentalAnimationApi
+@ExperimentalPagerApi
+@ExperimentalMaterialApi
+@ExperimentalFoundationApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private val windowInsetsController by lazy {
@@ -39,10 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     private var touchCount by mutableStateOf(0)
 
-    @ExperimentalFoundationApi
-    @ExperimentalAnimationApi
-    @ExperimentalPagerApi
-    @ExperimentalMaterialApi
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -91,7 +94,7 @@ class MainActivity : AppCompatActivity() {
             val y: Float = event.y
             if (x > screenWidth - size && x < screenWidth && y > 0 && y < size) {
                 Log.d(TAG, "onTouchEvent: count = $touchCount")
-                if (++touchCount < 8) {
+                if (++touchCount < 7) {
                     myHandler.postDelayed(clearCountRunnable, 1500)
                 }
             }

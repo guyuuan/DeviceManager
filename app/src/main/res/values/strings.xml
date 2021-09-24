@@ -13,6 +13,7 @@
     <string name="text_confirm">确认</string>
     <string name="text_software_version">软件版本:</string>
     <string name="text_auto_jump_time">页面自动转跳间隔:</string>
+    <string name="text_device_charging_time">设备充电时长:</string>
     <string name="text_enable_local_bind">开启本地绑定</string>
     <string name="text_close_app">关闭应用</string>
     <string name="text_save">保存</string>

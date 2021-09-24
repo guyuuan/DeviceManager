@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.blankj.utilcode.util.AppUtils
 import com.iknowmuch.devicemanager.R
@@ -45,6 +47,7 @@ import com.iknowmuch.devicemanager.ui.theme.ErrorRed
  *@createTime: 2021/9/14 17:30
  *@description:
  **/
+@ExperimentalComposeUiApi
 @Composable
 fun AppGlobalInfoDialog(
     viewModel: LoadingViewModel = hiltViewModel(),
@@ -57,7 +60,12 @@ fun AppGlobalInfoDialog(
     var autoJumpTime by remember {
         mutableStateOf(viewModel.autoJumpTime.toString())
     }
-    Dialog(onDismissRequest = onDismissRequest) {
+    var chargingTime by remember {
+        mutableStateOf(viewModel.chargingTime.toString())
+    }
+    Dialog(onDismissRequest = onDismissRequest
+    ,properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Column(
             Modifier
                 .fillMaxWidth()
@@ -80,6 +88,8 @@ fun AppGlobalInfoDialog(
                 },
                 contentColor = if (mqttStatus == MQTTStatus.CONNECT_SUCCESS) CorrectBlue else ErrorRed,
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            //自动转跳设置
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -95,6 +105,7 @@ fun AppGlobalInfoDialog(
                     modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Spacer(modifier = Modifier.width(16.dp))
                     BasicTextField(
                         textStyle = MaterialTheme.typography.body2,
                         value = autoJumpTime, onValueChange = {
@@ -122,7 +133,51 @@ fun AppGlobalInfoDialog(
                     }
                 }
             }
-            TextButton(onClick = { onCloseApp() }) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val style = MaterialTheme.typography.body1
+                Text(
+                    text = stringResource(id = R.string.text_device_charging_time),
+                    modifier = Modifier.weight(1f),
+                    style = style.copy(color = style.color.copy(alpha = 0.8f)),
+                    textAlign = TextAlign.End
+                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    BasicTextField(
+                        textStyle = MaterialTheme.typography.body2,
+                        value = chargingTime, onValueChange = {
+                            chargingTime = it
+                        }, modifier = Modifier
+                            .width(70.dp)
+                            .height(40.dp)
+                            .background(
+                                MaterialTheme.colors.background,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .border(BorderStroke(1.dp, Color.LightGray))
+                            .padding(4.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(onClick = {
+                        try {
+                            viewModel.saveChargingTime(chargingTime.toFloat())
+                            Toast.makeText(cxt, "保存成功", Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(cxt, "格式有误,只能输入数字", Toast.LENGTH_SHORT).show()
+                        }
+                    }) {
+                        Text(text = stringResource(id = R.string.text_save))
+                    }
+                }
+            }
+            TextButton(modifier = Modifier.padding(vertical = 8.dp), onClick = { onCloseApp() }) {
                 Text(text = stringResource(id = R.string.text_close_app))
             }
         }

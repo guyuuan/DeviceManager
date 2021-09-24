@@ -21,3 +21,5 @@ class KeepLivePreference(mmkv: MMKV) : MMKVPreference<Boolean>(mmkv, "keep_live"
 
 class AutoJumpTimePreference(mmkv: MMKV) :
     MMKVPreference<Int>(mmkv, "auto_jump_time", Config.DEFAULT_AUTO_JUMP_TIME)
+
+class ChargingTimePreference(mmkv: MMKV) : MMKVPreference<Float>(mmkv, "charging_time", Config.DEFAULT_CHARING_TIME)

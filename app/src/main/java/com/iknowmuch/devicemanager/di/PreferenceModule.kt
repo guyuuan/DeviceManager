@@ -1,10 +1,12 @@
 package com.iknowmuch.devicemanager.di
 
 import com.iknowmuch.devicemanager.preference.AutoJumpTimePreference
+import com.iknowmuch.devicemanager.preference.ChargingTimePreference
 import com.iknowmuch.devicemanager.preference.DeviceIDPreference
 import com.iknowmuch.devicemanager.preference.HttpServerPreference
 import com.iknowmuch.devicemanager.preference.KeepLivePreference
 import com.iknowmuch.devicemanager.preference.MqttServerPreference
+import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.tencent.mmkv.MMKV
 import dagger.Module
 import dagger.Provides
@@ -43,4 +45,28 @@ object PreferenceModule {
     @Provides
     @Singleton
     fun provideAutoJumpTimePreference(mmkv: MMKV) = AutoJumpTimePreference(mmkv)
+
+    @Provides
+    @Singleton
+    fun provideChargingTimePreference(mmkv: MMKV) = ChargingTimePreference(mmkv)
+
+    @Provides
+    @Singleton
+    fun providePreferenceManager(
+        deviceIDPreference: DeviceIDPreference,
+        httpServerPreference: HttpServerPreference,
+        mqttServerPreference: MqttServerPreference,
+        keepLivePreference: KeepLivePreference,
+        autoJumpTimePreference: AutoJumpTimePreference,
+        chargingTimePreference: ChargingTimePreference
+    ) = synchronized(PreferenceManager::class) {
+        PreferenceManager(
+            deviceIDPreference,
+            httpServerPreference,
+            mqttServerPreference,
+            keepLivePreference,
+            autoJumpTimePreference,
+            chargingTimePreference
+        )
+    }
 }
