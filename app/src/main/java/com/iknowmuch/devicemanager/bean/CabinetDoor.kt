@@ -3,6 +3,7 @@ package com.iknowmuch.devicemanager.bean
 import androidx.annotation.IntRange
 import androidx.annotation.StringRes
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
@@ -13,17 +14,17 @@ import com.iknowmuch.devicemanager.R
  *@createTime: 2021/9/17 13:11
  *@description:
  **/
-@Entity(tableName = "cabinet_door")
+@Entity(tableName = "cabinet_door", indices = [Index("id", unique = true)])
 @TypeConverters(CabinetDoorStatusConverter::class)
 data class CabinetDoor(
     @PrimaryKey(autoGenerate = true)
-    val primaryKey: Int =0,
+    val primaryKey: Int = 0,
     val id: Int,
     val status: Status,
     val deviceCode: String?,
     val availableTime: Float?,
     @IntRange(from = 0, to = 100) val devicePower: Int,
-    val chargingEndTime: Long = 0
+    val remainingChargingTime: Long = 0
 ) {
     sealed class Status(@StringRes val id: Int) {
         object Empty : Status(R.string.text_status_empty)

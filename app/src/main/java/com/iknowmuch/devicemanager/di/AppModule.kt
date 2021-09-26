@@ -62,8 +62,13 @@ object AppModule {
     @Singleton
     fun provideCabinetDoorDataBase(@ApplicationContext cxt: Context): CabinetDoorDataBase =
         synchronized(CabinetDoorDataBase::class) {
-            Room.databaseBuilder(cxt, CabinetDoorDataBase::class.java, "cabinet-door-db")
+            Room.databaseBuilder(cxt, CabinetDoorDataBase::class.java, "cabinet-door.db")
+                .createFromAsset("database.db")
                 .build()
         }
 
+    @Provides
+    @Singleton
+    fun provideCabinetDoorDao(cabinetDoorDataBase: CabinetDoorDataBase) =
+        cabinetDoorDataBase.getCabinetDoorDao()
 }

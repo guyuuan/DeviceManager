@@ -21,9 +21,7 @@ class SerialPortManager {
         coroutineScope.launch(Dispatchers.IO) {
 //            val input = (serialPort.inputStream as FileInputStream)
             while (true) {
-                Log.d(
-                    TAG, "run: $"
-                )
+                Log.d(TAG, "run: $")
                 delay(1000L)
             }
         }

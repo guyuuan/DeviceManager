@@ -1,9 +1,12 @@
 package com.iknowmuch.devicemanager.ui.scene.home
 
 import androidx.lifecycle.ViewModel
-import com.iknowmuch.devicemanager.bean.CabinetDoor
+import androidx.lifecycle.viewModelScope
 import com.iknowmuch.devicemanager.preference.DeviceIDPreference
+import com.iknowmuch.devicemanager.repository.CabinetDoorRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 /**
@@ -13,45 +16,11 @@ import javax.inject.Inject
  **/
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    deviceIDPreference: DeviceIDPreference
+    deviceIDPreference: DeviceIDPreference,
+    private val repository: CabinetDoorRepository
 ) : ViewModel() {
     val deviceID by deviceIDPreference
-    val cabinetDoorList = listOf(
-        CabinetDoor(
-            id = 1, status = CabinetDoor.Status.Idle,
-            deviceCode = "181903FB",
-            availableTime = 4f,
-            devicePower = 100
-        ),
-        CabinetDoor(
-            id = 2, status = CabinetDoor.Status.Charging,
-            deviceCode = "141903FB",
-            availableTime = 2f,
-            devicePower = 50
-        ),
-        CabinetDoor(
-            id = 3, status = CabinetDoor.Status.Fault,
-            deviceCode = "851903FB",
-            availableTime = 3f,
-            devicePower = 80
-        ),
-        CabinetDoor(
-            id = 4, status = CabinetDoor.Status.Error,
-            deviceCode = "661903FB",
-            availableTime = 3.5f,
-            devicePower = 80
-        ),
-        CabinetDoor(
-            id = 5, status = CabinetDoor.Status.Booked,
-            deviceCode = "181903FB",
-            availableTime = 4f,
-            devicePower = 100
-        ),
-        CabinetDoor(
-            id = 6, status = CabinetDoor.Status.Empty,
-            deviceCode = null,
-            availableTime = null,
-            devicePower = 0
-        ),
+    val cabinetDoorList = repository.getCabinetDoorFlow().stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(), emptyList()
     )
 }

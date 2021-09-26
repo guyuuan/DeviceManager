@@ -33,6 +33,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +69,7 @@ import com.iknowmuch.devicemanager.utils.drawColorShadow
 @Composable
 fun HomeScene(navController: NavController = LocalNavController.current) {
     val viewModel = hiltViewModel<HomeViewModel>()
+    val cabinetDoorList by viewModel.cabinetDoorList.collectAsState()
     Box(
         Modifier
             .fillMaxSize()
@@ -94,7 +96,7 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
                     .height(316.dp)
             )
             CabinetDoorList(
-                data = viewModel.cabinetDoorList,
+                data = cabinetDoorList,
                 Modifier
                     .padding(horizontal = 18.dp)
                     .fillMaxWidth()

@@ -14,8 +14,16 @@ class CabinetDoorRepository(private val cabinetDoorDao: CabinetDoorDao) {
 
     fun getCabinetDoorFlow() = cabinetDoorDao.getCabinetDoors()
 
-    suspend fun updateCabinetDoorInfo(door: CabinetDoor) = cabinetDoorDao.updateCabinetDoor(door)
+//    private suspend fun updateCabinetDoorInfo(door: CabinetDoor) =
+//        cabinetDoorDao.updateCabinetDoor(door)
 
-    suspend fun deleteCabinetDoor(door: CabinetDoor) = cabinetDoorDao.deleteCabinetDoor(door)
+    private suspend fun getCabinetDoorById(id: Int) = cabinetDoorDao.getCabinetDoorById(id)
 
+//    suspend fun deleteCabinetDoor(door: CabinetDoor) = cabinetDoorDao.deleteCabinetDoor(door)
+
+    suspend fun updateCabinetDoor(id: Int, modifier: (CabinetDoor?) -> CabinetDoor?) {
+        modifier(getCabinetDoorById(id))?.let {
+            cabinetDoorDao.updateCabinetDoor(it)
+        }
+    }
 }

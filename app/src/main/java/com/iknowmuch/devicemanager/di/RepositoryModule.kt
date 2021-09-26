@@ -1,6 +1,7 @@
 package com.iknowmuch.devicemanager.di
 
 import com.iknowmuch.devicemanager.db.CabinetDoorDataBase
+import com.iknowmuch.devicemanager.db.dao.CabinetDoorDao
 import com.iknowmuch.devicemanager.repository.CabinetDoorRepository
 import dagger.Module
 import dagger.Provides
@@ -19,9 +20,9 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideCabinetDoorRepository(cabinetDoorDataBase: CabinetDoorDataBase) =
+    fun provideCabinetDoorRepository(cabinetDoorDao: CabinetDoorDao) =
         synchronized(CabinetDoorRepository::class) {
-            CabinetDoorRepository(cabinetDoorDataBase.getCabinetDoorDao())
+            CabinetDoorRepository(cabinetDoorDao)
         }
 
 }
