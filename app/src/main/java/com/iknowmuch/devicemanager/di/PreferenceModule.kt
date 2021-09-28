@@ -5,6 +5,7 @@ import com.iknowmuch.devicemanager.preference.ChargingTimePreference
 import com.iknowmuch.devicemanager.preference.DeviceIDPreference
 import com.iknowmuch.devicemanager.preference.HttpServerPreference
 import com.iknowmuch.devicemanager.preference.KeepLivePreference
+import com.iknowmuch.devicemanager.preference.LastMessageTimePreference
 import com.iknowmuch.devicemanager.preference.MqttServerPreference
 import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.tencent.mmkv.MMKV
@@ -52,13 +53,18 @@ object PreferenceModule {
 
     @Provides
     @Singleton
+    fun provideLastMessageTimePreference(mmkv: MMKV) = LastMessageTimePreference(mmkv)
+
+    @Provides
+    @Singleton
     fun providePreferenceManager(
         deviceIDPreference: DeviceIDPreference,
         httpServerPreference: HttpServerPreference,
         mqttServerPreference: MqttServerPreference,
         keepLivePreference: KeepLivePreference,
         autoJumpTimePreference: AutoJumpTimePreference,
-        chargingTimePreference: ChargingTimePreference
+        chargingTimePreference: ChargingTimePreference,
+        lastMessageTimePreference: LastMessageTimePreference
     ) = synchronized(PreferenceManager::class) {
         PreferenceManager(
             deviceIDPreference,
@@ -66,7 +72,8 @@ object PreferenceModule {
             mqttServerPreference,
             keepLivePreference,
             autoJumpTimePreference,
-            chargingTimePreference
+            chargingTimePreference,
+            lastMessageTimePreference
         )
     }
 }

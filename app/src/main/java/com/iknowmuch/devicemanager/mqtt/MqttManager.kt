@@ -3,8 +3,10 @@ package com.iknowmuch.devicemanager.mqtt
 import android.content.Context
 import android.util.Log
 import com.iknowmuch.devicemanager.Config
+import com.iknowmuch.devicemanager.bean.MQMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -31,6 +33,8 @@ class MqttManager {
 
     private val mqttStatusMap = MutableStateFlow<Map<String, MQTTStatus>>(emptyMap())
 
+    val mqttMessageFlow by lazy { MutableSharedFlow<MQMessage>(replay = 3) }
+
     fun getClient(id: String) = clientsMap[id]
 
     fun createClient(cxt: Context, clientId: String, url: String): MqttAndroidClient {
@@ -44,8 +48,9 @@ class MqttManager {
 
                     override fun messageArrived(topic: String?, message: MqttMessage?) {
                         message?.let {
-                            val str = it.payload.toString(Charsets.UTF_8)
-                            Log.d(TAG, "messageArrived: $str")
+                            coroutineScope.launch {
+                                mqttMessageFlow.emit(MQMessage(topic ?: "", it.toString()))
+                            }
                         }
                     }
 
@@ -143,6 +148,7 @@ class MqttManager {
     }
 
     fun connect(client: MqttAndroidClient) {
+        if (client.isConnected) return
         val options = MqttConnectOptions().apply {
             isAutomaticReconnect = true
             isCleanSession = true
@@ -151,6 +157,9 @@ class MqttManager {
             client.connect(options, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken?) {
                     Log.d(TAG, "connect onSuccess: ")
+                    coroutineScope.launch {
+                        mqttStatusMap
+                    }
                 }
 
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {

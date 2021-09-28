@@ -63,7 +63,11 @@ object AppModule {
     fun provideCabinetDoorDataBase(@ApplicationContext cxt: Context): CabinetDoorDataBase =
         synchronized(CabinetDoorDataBase::class) {
             Room.databaseBuilder(cxt, CabinetDoorDataBase::class.java, "cabinet-door.db")
-                .createFromAsset("database.db")
+                .createFromAsset("database-v1.db")
+                //初始化使用的db文件的版本号必须和@Database(
+                //    entities = [CabinetDoor::class],
+                //    version = 1,)
+                // 中的version数值保持一致
                 .build()
         }
 

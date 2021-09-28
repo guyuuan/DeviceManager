@@ -310,8 +310,8 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                         .background(color = spacerColor)
                 )
                 Text(
-                    text = if (data.deviceCode != null) stringResource(R.string.text_device_code).format(
-                        data.deviceCode
+                    text = if (data.probeCode != null) stringResource(R.string.text_device_code).format(
+                        data.probeCode
                     ) else stringResource(
                         id = R.string.text_empty_device_code
                     ),

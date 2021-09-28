@@ -21,7 +21,7 @@ data class CabinetDoor(
     val primaryKey: Int = 0,
     val id: Int,
     val status: Status,
-    val deviceCode: String?,
+    val probeCode: String?,
     val availableTime: Float?,
     @IntRange(from = 0, to = 100) val devicePower: Int,
     val remainingChargingTime: Long = 0

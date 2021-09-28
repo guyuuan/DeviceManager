@@ -7,8 +7,7 @@ package com.iknowmuch.devicemanager.bean
  **/
 
 abstract class BaseJson {
-    abstract val code: Int
-    abstract val message: String?
+    abstract val status: Int
     abstract val msg: String?
 }
 /*

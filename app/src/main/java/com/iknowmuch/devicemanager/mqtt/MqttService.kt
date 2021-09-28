@@ -9,7 +9,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.blankj.utilcode.util.DeviceUtils
 import com.iknowmuch.devicemanager.Config
+import com.iknowmuch.devicemanager.bean.MQMessage
+import com.iknowmuch.devicemanager.bean.Message
+import com.iknowmuch.devicemanager.http.moshi.moshi
 import com.iknowmuch.devicemanager.preference.MqttServerPreference
+import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -25,10 +29,13 @@ class MqttService : LifecycleService() {
     @Inject
     lateinit var mqttManager: MqttManager
 
+    @Inject
+    lateinit var preferenceManager: PreferenceManager
+
     private val mqttServer by MqttServerPreference(MMKV.defaultMMKV())
 
     private val clientID by lazy {
-        Config.getTopic(DeviceUtils.getAndroidID())
+        preferenceManager.deviceID
     }
 
     private val topic by lazy {
@@ -40,8 +47,10 @@ class MqttService : LifecycleService() {
         super.onCreate()
         startMqtt()
         collectMqttStatus()
+        collectMqttMessage()
 //        startSendMessage()
     }
+
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand: ")
@@ -105,6 +114,29 @@ class MqttService : LifecycleService() {
                 status.collectLatest {
                     handlerMqttStatus(it[clientID] ?: MQTTStatus.CONNECTING)
                 }
+            }
+        }
+    }
+
+    private fun collectMqttMessage() {
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                mqttManager.mqttMessageFlow.collectLatest {
+                    handlerMqttMessage(it)
+                }
+            }
+        }
+    }
+
+    private val jsonAdapter by lazy { moshi.adapter(Message::class.java) }
+    private fun handlerMqttMessage(mqMessage: MQMessage) {
+        if (mqMessage.topic != topic || mqMessage.timestamp < preferenceManager.lastMessageTime) return
+        mqMessage.message
+        val json = jsonAdapter.fromJson(mqMessage.message) ?: return
+        when (json.code) {
+            1 -> {
+            }
+            else -> {
             }
         }
     }

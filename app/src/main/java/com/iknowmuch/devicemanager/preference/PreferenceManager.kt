@@ -11,7 +11,8 @@ class PreferenceManager(
     mqttServerPreference: MqttServerPreference,
     keepLivePreference: KeepLivePreference,
     autoJumpTimePreference: AutoJumpTimePreference,
-    chargingTimePreference: ChargingTimePreference
+    chargingTimePreference: ChargingTimePreference,
+    lastMessageTimePreference: LastMessageTimePreference
 ) {
     var deviceID by deviceIDPreference
     var httpServer by httpServerPreference
@@ -19,4 +20,5 @@ class PreferenceManager(
     var keepLive by keepLivePreference
     var autoJumpTime by autoJumpTimePreference
     var chargingTime by chargingTimePreference
+    var lastMessageTime by lastMessageTimePreference
 }

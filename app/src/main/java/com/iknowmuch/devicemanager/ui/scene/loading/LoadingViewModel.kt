@@ -1,5 +1,6 @@
 package com.iknowmuch.devicemanager.ui.scene.loading
 
+import android.os.Environment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.DeviceUtils
@@ -39,7 +40,7 @@ class LoadingViewModel @Inject constructor(
     val deviceID: StateFlow<String>
         get() = _deviceID
     val mqttState = mqttManager.getMqttStatus()
-        .map { it["android.cloud.shelf.$_deviceID"] ?: MQTTStatus.CONNECTING }.stateIn(
+        .map { it[preferenceManager.deviceID] ?: MQTTStatus.CONNECTING }.stateIn(
             viewModelScope,
             SharingStarted.Lazily, MQTTStatus.CONNECTING
         )

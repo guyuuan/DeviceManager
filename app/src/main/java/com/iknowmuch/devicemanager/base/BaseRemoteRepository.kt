@@ -20,8 +20,8 @@ open class BaseRemoteRepository {
             val data = block()
             val response = if (data != null) {
                 RequestStatus(
-                    code = data.code,
-                    status = when (data.code) {
+                    code = data.status,
+                    status = when (data.status) {
                         in 200..299 -> RequestStatus.State.STATE_SUCCESS
                         in 300..599 -> RequestStatus.State.STATE_FAILED
                         else -> RequestStatus.State.STATE_UNKNOWN
@@ -53,8 +53,8 @@ open class BaseRemoteRepository {
             val data = block()
             val response = if (data != null) {
                 RequestStatus(
-                    code = data.code,
-                    status = when (data.code) {
+                    code = data.status,
+                    status = when (data.status) {
                         in 200..299 -> RequestStatus.State.STATE_SUCCESS
                         in 300..599 -> RequestStatus.State.STATE_FAILED
                         else -> RequestStatus.State.STATE_UNKNOWN

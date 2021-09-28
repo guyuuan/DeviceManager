@@ -2,9 +2,7 @@ package com.iknowmuch.devicemanager.db
 
 import androidx.room.AutoMigration
 import androidx.room.Database
-import androidx.room.RenameColumn
 import androidx.room.RoomDatabase
-import androidx.room.migration.AutoMigrationSpec
 import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.db.dao.CabinetDoorDao
 
@@ -15,8 +13,9 @@ import com.iknowmuch.devicemanager.db.dao.CabinetDoorDao
  **/
 @Database(
     entities = [CabinetDoor::class],
-    version = 2,
-    autoMigrations = [AutoMigration(from = 1, to = 2)]
+    version = 1,
+//    autoMigrations = [AutoMigration(from = 1, to = 2),
+//        AutoMigration(from = 2, to = 3)]
 )
 abstract class CabinetDoorDataBase : RoomDatabase() {
     abstract fun getCabinetDoorDao(): CabinetDoorDao
