@@ -49,6 +49,7 @@ class MqttManager {
                     override fun messageArrived(topic: String?, message: MqttMessage?) {
                         message?.let {
                             coroutineScope.launch {
+                                Log.d(TAG, "messageArrived: $it")
                                 mqttMessageFlow.emit(MQMessage(topic ?: "", it.toString()))
                             }
                         }

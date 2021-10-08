@@ -57,10 +57,10 @@ class MqttService : LifecycleService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onBind(intent: Intent): IBinder {
-        super.onBind(intent)
-        return Binder(this)
-    }
+//    override fun onBind(intent: Intent): IBinder {
+//        super.onBind(intent)
+//        return Binder(this)
+//    }
 
     override fun onDestroy() {
         Log.d(TAG, "onDestroy: ")
@@ -131,13 +131,16 @@ class MqttService : LifecycleService() {
     private val jsonAdapter by lazy { moshi.adapter(Message::class.java) }
     private fun handlerMqttMessage(mqMessage: MQMessage) {
         if (mqMessage.topic != topic || mqMessage.timestamp < preferenceManager.lastMessageTime) return
-        mqMessage.message
-        val json = jsonAdapter.fromJson(mqMessage.message) ?: return
-        when (json.code) {
-            1 -> {
+        try {
+            val json = jsonAdapter.fromJson(mqMessage.message) ?: return
+            when (json.code) {
+                1 -> {
+                }
+                else -> {
+                }
             }
-            else -> {
-            }
+        } catch (e: Exception) {
+            Log.e(TAG, "handlerMqttMessage: ", e)
         }
     }
 
@@ -154,5 +157,5 @@ class MqttService : LifecycleService() {
         }
     }
 
-    class Binder(mqttService: MqttService) : android.os.Binder()
+//    class Binder(mqttService: MqttService) : android.os.Binder()
 }

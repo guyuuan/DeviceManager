@@ -34,5 +34,3 @@ class RequestStatus<T>(
         STATE_UNKNOWN//未知
     }
 }
-
-

@@ -12,15 +12,24 @@ import retrofit2.http.Query
  **/
 interface ProbeApi {
 
-    //探头电量上报
+    /*
+    * 探头电量上报
+    * {
+    * "probeCode":"54245345",
+    * "power":"100",
+    * "deptId":"10"
+    * }
+*/
     @POST("/cgi-bin/reportPower")
     fun reportProbePower(@Body body: Map<String, Any>): DefaultResponseJson
 
-    //
+    //充电异常上报
     @POST("/cgi-bin/abnormalCharging")
     fun abnormalCharging(
         @Query("cabinetCode") deviceID: String,
         @Query("probeCode") probeCode: String,
-        @Query("createDate") createDate: String
+        @Query("createDate") createDate: String,
+        @Query("deptId") deptId:String
     ): DefaultResponseJson
+
 }

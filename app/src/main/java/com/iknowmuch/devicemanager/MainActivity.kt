@@ -72,7 +72,8 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-                startService(Intent(this, MqttService::class.java))
+                val intent =Intent(this, MqttService::class.java)
+                startService(intent)
             } else {
                 finish()
             }
@@ -101,6 +102,5 @@ class MainActivity : AppCompatActivity() {
         }
         return super.dispatchTouchEvent(event)
     }
-
 
 }

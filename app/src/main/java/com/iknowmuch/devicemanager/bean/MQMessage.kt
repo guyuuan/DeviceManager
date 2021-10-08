@@ -17,6 +17,22 @@ data class MQMessage(
 data class Message(
     val code: Int,
     val message: String,
-    val data: Any,
+    val data: Data,
     val time: Long
-)
+) {
+    /*
+    * probeCode ：探头编码
+      cabinet Code：智能柜编码
+      state：操作状态（0是借，1是还）
+      doorNo：智能柜柜门号
+      deptId：院区id
+    * */
+    @JsonClass(generateAdapter = true)
+    data class Data(
+        val probeCode: String,
+        val cabinetCode: String,
+        val state: Int,
+        val doorNo: Int,
+        val deptId: Int
+    )
+}
