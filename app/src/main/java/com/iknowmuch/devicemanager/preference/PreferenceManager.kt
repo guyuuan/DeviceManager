@@ -17,7 +17,8 @@ class PreferenceManager(
 ) {
 //    var deviceID by deviceIDPreference
     var deviceID = "124"
-    var deptID by deptIDPreference
+//    var deptID by deptIDPreference
+    var deptID = "14"
     var httpServer by httpServerPreference
     var mqttServer by mqttServerPreference
     var keepLive by keepLivePreference

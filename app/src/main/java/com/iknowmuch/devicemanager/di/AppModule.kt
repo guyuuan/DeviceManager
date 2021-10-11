@@ -12,6 +12,7 @@ import com.iknowmuch.devicemanager.http.api.DoorApi
 import com.iknowmuch.devicemanager.http.moshi.moshi
 import com.iknowmuch.devicemanager.mqtt.MqttManager
 import com.iknowmuch.devicemanager.preference.HttpServerPreference
+import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.iknowmuch.devicemanager.repository.DeviceRepository
 import com.iknowmuch.devicemanager.serialport.SerialPortManager
 import dagger.Module
@@ -68,7 +69,7 @@ object AppModule {
     fun provideCabinetDoorDataBase(@ApplicationContext cxt: Context): CabinetDoorDataBase =
         synchronized(CabinetDoorDataBase::class) {
             Room.databaseBuilder(cxt, CabinetDoorDataBase::class.java, "cabinet-door.db")
-//                .createFromAsset("database-v1.db")
+                .createFromAsset("v1.db")
                 //初始化使用的db文件的版本号必须和@Database(
                 //    entities = [CabinetDoor::class],
                 //    version = 1,)
@@ -88,9 +89,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDeviceRepository(deviceDao: DeviceDao) = synchronized(DeviceRepository::class) {
-        DeviceRepository(deviceDao)
-    }
+    fun provideDeviceRepository(deviceDao: DeviceDao, preferenceManager: PreferenceManager) =
+        synchronized(DeviceRepository::class) {
+            DeviceRepository(deviceDao, preferenceManager)
+        }
 
     @Provides
     @Singleton
