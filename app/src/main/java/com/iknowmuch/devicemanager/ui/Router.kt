@@ -16,6 +16,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.iknowmuch.devicemanager.ui.scene.home.HomeScene
 import com.iknowmuch.devicemanager.ui.scene.loading.LoadingScene
 import com.iknowmuch.devicemanager.ui.scene.more.MoreScene
+import com.iknowmuch.devicemanager.ui.scene.scan.ScanScene
 
 /**
  *@author: Chen
@@ -26,6 +27,7 @@ sealed class Scene(val id: String, @StringRes val label: Int? = null) {
     object Loading : Scene(id = "Loading")
     object Home : Scene(id = "home")
     object More : Scene(id = "login")
+    object Scan:Scene(id = "scan")
 }
 
 @ExperimentalFoundationApi
@@ -61,5 +63,8 @@ private fun NavGraphBuilder.route() {
     }
     composable(Scene.Loading.id) {
         LoadingScene()
+    }
+    composable(Scene.Scan.id){
+        ScanScene()
     }
 }

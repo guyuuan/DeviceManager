@@ -5,6 +5,7 @@ dependencyResolutionManagement {
         mavenCentral()
         maven { url 'https://maven.aliyun.com/repository/jcenter' }
         maven { url "https://jitpack.io" }
+        maven { url 'https://developer.huawei.com/repo/' }
 //        jcenter() // Warning: this repository is going to shut down soon
     }
 }

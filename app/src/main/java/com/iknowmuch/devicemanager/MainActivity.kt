@@ -22,7 +22,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.iknowmuch.devicemanager.mqtt.MqttService
 import com.iknowmuch.devicemanager.ui.Router
@@ -30,16 +29,6 @@ import com.iknowmuch.devicemanager.ui.dialog.AppGlobalInfoDialog
 import com.iknowmuch.devicemanager.ui.theme.AppTheme
 import com.permissionx.guolindev.PermissionX
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.broadcastIn
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.produceIn
-import kotlinx.coroutines.launch
 
 private const val TAG = "MainActivity"
 
@@ -63,7 +52,7 @@ class MainActivity : AppCompatActivity() {
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
         PermissionX.init(this).permissions(
-            Manifest.permission.READ_EXTERNAL_STORAGE
+            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA
         ).request { allGranted, _, _ ->
             if (allGranted) {
                 setContent {

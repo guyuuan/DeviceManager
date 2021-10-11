@@ -52,6 +52,7 @@ import com.google.accompanist.insets.statusBarsPadding
 import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.ui.LocalNavController
+import com.iknowmuch.devicemanager.ui.Scene
 import com.iknowmuch.devicemanager.ui.theme.BatteryColor
 import com.iknowmuch.devicemanager.ui.theme.BlueBrush
 import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
@@ -103,7 +104,7 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
                     .weight(1f)
             )
             BottomButton(
-                viewModel = viewModel,
+                viewModel = viewModel, navController,
                 Modifier
                     .padding(horizontal = 32.dp)
                     .padding(bottom = 124.dp, top = 125.dp)
@@ -160,13 +161,17 @@ fun UsingInstructionItem(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun BottomButton(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
+fun BottomButton(
+    viewModel: HomeViewModel,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
     Row(modifier = modifier) {
         Box(
             modifier = Modifier
                 .weight(1f)
                 .height(204.dp)
-                .clickable { }
+                .clickable {}
                 .background(
                     brush = GreenBrush, shape = MaterialTheme.shapes.medium
                 ),
@@ -184,7 +189,9 @@ fun BottomButton(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .weight(1f)
                 .height(204.dp)
-                .clickable { }
+                .clickable {
+                    navController.navigate(Scene.Scan.id)
+                }
                 .background(brush = BlueBrush, shape = MaterialTheme.shapes.medium),
             contentAlignment = Alignment.Center
         ) {
