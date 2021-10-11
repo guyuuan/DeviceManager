@@ -1,7 +1,10 @@
 package com.iknowmuch.devicemanager.http.api
 
+import com.iknowmuch.devicemanager.bean.DefaultResponseJson
+import com.iknowmuch.devicemanager.bean.HomeDataJson
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 /**
  *@author: Chen
@@ -16,5 +19,15 @@ interface CabinetApi {
     * "appVersion":"1.0"
     * */
     @POST("/cgi-bin/onlineStatus")
-    suspend fun heartBeat(@Body map :Map<String,Any>)
+    suspend fun heartBeat(@Body map: Map<String, Any>)
+
+    /*
+    *cabinetCode: 设备编号
+    * deptId: 园区id
+    * */
+    @POST("/homeDetails/getDetailsData")
+    suspend fun getHomeData(
+        @Query("cabinetCode") cabinetCode: String,
+        @Query("deptId") deptId: String
+    ): HomeDataJson
 }

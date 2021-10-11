@@ -1,19 +1,20 @@
 package com.iknowmuch.devicemanager.mqtt
 
 import android.content.Intent
-import android.os.IBinder
 import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.blankj.utilcode.util.DeviceUtils
 import com.iknowmuch.devicemanager.Config
 import com.iknowmuch.devicemanager.bean.MQMessage
 import com.iknowmuch.devicemanager.bean.Message
+import com.iknowmuch.devicemanager.http.api.DoorApi
 import com.iknowmuch.devicemanager.http.moshi.moshi
 import com.iknowmuch.devicemanager.preference.MqttServerPreference
 import com.iknowmuch.devicemanager.preference.PreferenceManager
+import com.iknowmuch.devicemanager.repository.DoorApiRepository
+import com.iknowmuch.devicemanager.serialport.SerialPortManager
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -26,20 +27,28 @@ private const val TAG = "MqttService"
 
 @AndroidEntryPoint
 class MqttService : LifecycleService() {
+
+    @Inject
+    lateinit var serialPortManager: SerialPortManager
+
     @Inject
     lateinit var mqttManager: MqttManager
 
     @Inject
     lateinit var preferenceManager: PreferenceManager
 
+    @Inject
+    lateinit var doorApiRepository: DoorApiRepository
+
     private val mqttServer by MqttServerPreference(MMKV.defaultMMKV())
 
     private val clientID by lazy {
         preferenceManager.deviceID
+//        "124"
     }
 
     private val topic by lazy {
-        Config.getTopic(DeviceUtils.getAndroidID())
+        Config.getTopic(preferenceManager.deviceID)
     }
 
     override fun onCreate() {
@@ -129,16 +138,47 @@ class MqttService : LifecycleService() {
     }
 
     private val jsonAdapter by lazy { moshi.adapter(Message::class.java) }
-    private fun handlerMqttMessage(mqMessage: MQMessage) {
+
+    @Suppress("BlockingMethodInNonBlockingContext")
+    private suspend fun handlerMqttMessage(mqMessage: MQMessage) {
         if (mqMessage.topic != topic || mqMessage.timestamp < preferenceManager.lastMessageTime) return
         try {
             val json = jsonAdapter.fromJson(mqMessage.message) ?: return
-            when (json.code) {
-                1 -> {
+            Log.d(TAG, "handlerMqttMessage: $json")
+            preferenceManager.deptID = json.data.deptId.toString()
+            when (json.data.state) {
+                //借
+                0 -> {
+                    serialPortManager.lendDevice()
+                    doorApiRepository.openDoor(
+                        DoorApi.State_Sucess,
+                        json.data.deptId.toString(),
+                        json.data.doorNo
+                    )
+                    delay(1000L * 3)
+                    doorApiRepository.closeDoor(
+                        DoorApi.State_Sucess,
+                        json.data.deptId.toString(),
+                        json.data.doorNo
+                    )
                 }
+                //还
                 else -> {
+                    serialPortManager.returnDevice()
+                    doorApiRepository.openDoor(
+                        DoorApi.State_Sucess,
+                        json.data.deptId.toString(),
+                        json.data.doorNo
+                    )
+                    delay(1000L * 3)
+                    doorApiRepository.closeDoor(
+                        DoorApi.State_Sucess,
+                        json.data.deptId.toString(),
+                        json.data.doorNo
+                    )
                 }
             }
+
         } catch (e: Exception) {
             Log.e(TAG, "handlerMqttMessage: ", e)
         }

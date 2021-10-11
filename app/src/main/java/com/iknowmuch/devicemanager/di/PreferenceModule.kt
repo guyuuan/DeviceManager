@@ -2,6 +2,7 @@ package com.iknowmuch.devicemanager.di
 
 import com.iknowmuch.devicemanager.preference.AutoJumpTimePreference
 import com.iknowmuch.devicemanager.preference.ChargingTimePreference
+import com.iknowmuch.devicemanager.preference.DeptIDPreference
 import com.iknowmuch.devicemanager.preference.DeviceIDPreference
 import com.iknowmuch.devicemanager.preference.HttpServerPreference
 import com.iknowmuch.devicemanager.preference.KeepLivePreference
@@ -57,8 +58,13 @@ object PreferenceModule {
 
     @Provides
     @Singleton
+    fun provideDeptIDPreference(mmkv: MMKV): DeptIDPreference = DeptIDPreference(mmkv)
+
+    @Provides
+    @Singleton
     fun providePreferenceManager(
         deviceIDPreference: DeviceIDPreference,
+        deptIDPreference: DeptIDPreference,
         httpServerPreference: HttpServerPreference,
         mqttServerPreference: MqttServerPreference,
         keepLivePreference: KeepLivePreference,
@@ -68,6 +74,7 @@ object PreferenceModule {
     ) = synchronized(PreferenceManager::class) {
         PreferenceManager(
             deviceIDPreference,
+            deptIDPreference,
             httpServerPreference,
             mqttServerPreference,
             keepLivePreference,

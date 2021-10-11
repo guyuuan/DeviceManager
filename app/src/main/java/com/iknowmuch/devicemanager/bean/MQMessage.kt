@@ -18,7 +18,7 @@ data class Message(
     val code: Int,
     val message: String,
     val data: Data,
-    val time: Long
+    val time: Long?
 ) {
     /*
     * probeCode ：探头编码

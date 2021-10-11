@@ -1,8 +1,12 @@
 package com.iknowmuch.devicemanager.di
 
-import com.iknowmuch.devicemanager.db.CabinetDoorDataBase
 import com.iknowmuch.devicemanager.db.dao.CabinetDoorDao
-import com.iknowmuch.devicemanager.repository.CabinetDoorRepository
+import com.iknowmuch.devicemanager.http.api.CabinetApi
+import com.iknowmuch.devicemanager.http.api.DoorApi
+import com.iknowmuch.devicemanager.preference.PreferenceManager
+import com.iknowmuch.devicemanager.repository.CabinetApiRepository
+import com.iknowmuch.devicemanager.repository.DoorApiRepository
+import com.iknowmuch.devicemanager.repository.DoorDataBaseRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,9 +24,22 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideCabinetDoorRepository(cabinetDoorDao: CabinetDoorDao) =
-        synchronized(CabinetDoorRepository::class) {
-            CabinetDoorRepository(cabinetDoorDao)
+    fun provideDoorDataBaseRepository(cabinetDoorDao: CabinetDoorDao) =
+        synchronized(DoorDataBaseRepository::class) {
+            DoorDataBaseRepository(cabinetDoorDao)
         }
 
+    @Provides
+    @Singleton
+    fun provideDoorApiRepository(doorApi: DoorApi, preferenceManager: PreferenceManager) =
+        synchronized(DoorApiRepository::class) {
+            DoorApiRepository(doorApi = doorApi, preferenceManager = preferenceManager)
+        }
+
+    @Provides
+    @Singleton
+    fun provideCabinetApiRepository(cabinetApi: CabinetApi, preferenceManager: PreferenceManager) =
+        synchronized(CabinetApiRepository::class) {
+            CabinetApiRepository(cabinetApi, preferenceManager)
+        }
 }

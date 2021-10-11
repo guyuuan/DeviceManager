@@ -89,7 +89,7 @@ class MqttManager {
             try {
                 client.subscribe(topic, qos, "Subscribe", object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
-                        Log.d(TAG, "Subscribe onSuccess: ")
+                        Log.d(TAG, "Subscribe onSuccess: $topic")
                     }
 
                     override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {

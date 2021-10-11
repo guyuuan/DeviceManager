@@ -7,6 +7,7 @@ package com.iknowmuch.devicemanager.preference
  **/
 class PreferenceManager(
     deviceIDPreference: DeviceIDPreference,
+    deptIDPreference: DeptIDPreference,
     httpServerPreference: HttpServerPreference,
     mqttServerPreference: MqttServerPreference,
     keepLivePreference: KeepLivePreference,
@@ -14,7 +15,9 @@ class PreferenceManager(
     chargingTimePreference: ChargingTimePreference,
     lastMessageTimePreference: LastMessageTimePreference
 ) {
-    var deviceID by deviceIDPreference
+//    var deviceID by deviceIDPreference
+    var deviceID = "124"
+    var deptID by deptIDPreference
     var httpServer by httpServerPreference
     var mqttServer by mqttServerPreference
     var keepLive by keepLivePreference

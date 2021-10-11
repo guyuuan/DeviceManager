@@ -26,4 +26,11 @@ class SerialPortManager {
             }
         }
     }
+
+    //借
+    fun lendDevice(){
+
+    }
+    //还
+    fun returnDevice(){}
 }

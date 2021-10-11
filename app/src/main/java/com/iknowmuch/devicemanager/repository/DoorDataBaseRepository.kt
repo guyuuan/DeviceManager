@@ -1,5 +1,6 @@
 package com.iknowmuch.devicemanager.repository
 
+import android.util.Log
 import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.db.dao.CabinetDoorDao
 import kotlinx.coroutines.CoroutineScope
@@ -14,8 +15,8 @@ import kotlin.math.roundToInt
  *@description:
  **/
 const val DelayTime = 1000L * 10
-
-class CabinetDoorRepository(private val cabinetDoorDao: CabinetDoorDao) {
+private const val TAG = "DoorDataBaseRepository"
+class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
 
     suspend fun insertCabinetDoor(data: List<CabinetDoor>) = cabinetDoorDao.insertCabinetDoors(data)
 
@@ -28,11 +29,17 @@ class CabinetDoorRepository(private val cabinetDoorDao: CabinetDoorDao) {
 
 //    suspend fun deleteCabinetDoor(door: CabinetDoor) = cabinetDoorDao.deleteCabinetDoor(door)
 
-    suspend fun updateCabinetDoor(id: Int, modifier: (CabinetDoor?) -> CabinetDoor?) {
-        modifier(getCabinetDoorById(id))?.let {
-            cabinetDoorDao.updateCabinetDoor(it)
+    suspend fun updateCabinetDoorById(id: Int, modifier: (CabinetDoor) -> CabinetDoor) {
+        val old = getCabinetDoorById(id)
+        if (old!=null){
+            Log.d(TAG, "updateCabinetDoorById: old $old")
+            cabinetDoorDao.updateCabinetDoor(modifier(old))
+        }else{
+            Log.d(TAG, "updateCabinetDoorById: $id is null")
         }
     }
+
+    suspend fun updateCabinetDoor(new: CabinetDoor) = cabinetDoorDao.updateCabinetDoor(new)
 
     fun startDataAutoUpdate(coroutineScope: CoroutineScope, totalChargingTime: Long) {
         coroutineScope.launch(Dispatchers.IO) {
@@ -48,12 +55,12 @@ class CabinetDoorRepository(private val cabinetDoorDao: CabinetDoorDao) {
                         CabinetDoor.Status.Charging -> {
                             if (it.remainingChargingTime > 0) {
                                 val time = (it.remainingChargingTime - DelayTime).coerceAtLeast(0)
-                                val percent =(1f - (time / totalChargingTime.toFloat()))
+                                val percent = (1f - (time / totalChargingTime.toFloat()))
                                 val new = it.copy(
                                     remainingChargingTime = time,
                                     devicePower = (100 * percent).roundToInt(),
                                     status = if (time > 0) it.status else CabinetDoor.Status.Idle,
-                                    availableTime = 4f*percent
+                                    availableTime = 4f * percent
                                 )
                                 cabinetDoorDao.updateCabinetDoor(new)
                             } else {

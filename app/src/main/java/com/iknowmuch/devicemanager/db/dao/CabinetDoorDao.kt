@@ -3,6 +3,7 @@ package com.iknowmuch.devicemanager.db.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.iknowmuch.devicemanager.bean.CabinetDoor
@@ -15,7 +16,7 @@ import kotlinx.coroutines.flow.Flow
  **/
 @Dao
 interface CabinetDoorDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCabinetDoors(data: List<CabinetDoor>)
 
     @Query("SELECT * FROM cabinet_door")

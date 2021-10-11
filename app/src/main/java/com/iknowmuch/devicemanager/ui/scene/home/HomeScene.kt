@@ -106,7 +106,7 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
                 viewModel = viewModel,
                 Modifier
                     .padding(horizontal = 32.dp)
-                    .padding(bottom = 124.dp)
+                    .padding(bottom = 124.dp, top = 125.dp)
                     .fillMaxWidth()
             )
         }
@@ -129,8 +129,9 @@ fun UsingInstructionsCard(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.ExtraBold,
                 color = DefaultBlackTextColor
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             UsingInstructionItem(text = "如何借:点击底部的“借”按钮——用微信扫一扫——进入小程序")
+            Spacer(modifier = Modifier.height(4.dp))
             Spacer(modifier = Modifier.height(4.dp))
             UsingInstructionItem(text = "如何还:点击底部的“还”按钮——将探头编码对准摄像头——将设备放入柜中，并插好电源——关上柜门")
             Spacer(modifier = Modifier.height(4.dp))
@@ -406,13 +407,14 @@ fun TopBar(viewModel: HomeViewModel, modifier: Modifier = Modifier, navControlle
         LocalContentColor provides Color.White
     ) {
         Row(modifier = modifier) {
+            val device by viewModel.device.collectAsState()
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "智能柜1",
+                    text = device.name,
                     style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.ExtraBold)
                 )
                 Text(
-                    text = stringResource(R.string.text_device_id_format).format(viewModel.deviceID),
+                    text = stringResource(R.string.text_device_id_format).format(device.id),
                     style = MaterialTheme.typography.subtitle1
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -421,7 +423,7 @@ fun TopBar(viewModel: HomeViewModel, modifier: Modifier = Modifier, navControlle
                         contentDescription = null
                     )
                     Text(
-                        text = "西湖区A医院1号楼一楼东北角体检科对面",
+                        text = device.location,
                         style = MaterialTheme.typography.subtitle1
                     )
                 }

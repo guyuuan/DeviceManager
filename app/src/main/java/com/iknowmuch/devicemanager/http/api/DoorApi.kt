@@ -9,22 +9,37 @@ import retrofit2.http.Query
  *@author: Chen
  *@createTime: 2021/9/29 11:05
  *@description:
+ * 借
+ * 1.门 打不开
+ * 2.门开了,东西没拿,也没关
+ * 3.门开了,东西没拿,门关上了
+ * 4.门开了,东西拿了,门没关
+ * 5.成功
+ * 还:
+ * 1.门开了,东西没放入,门也没关
+ * 2.门开了,东西放入,门没关
+ * 3.门开了,东西没放入,门关了
+ * 4.归还成功
  **/
 interface DoorApi {
-
+    companion object{
+        const val State_Sucess = 1
+        const val State_Failed = 0
+    }
     @POST("/android/openDoor")
-    fun openDoor(
+    suspend fun openDoor(
         @Query("state") @IntRange(from = 0, to = 1) state: Int,
-        @Query("probeCode") probeCode: String,
+        @Query("deptId") deptId: String,
         @Query("cabinetCode") deviceID: String,
         @Query("doorNo") doorNo: Int
     ): DefaultResponseJson
 
     @POST("/android/closeDoor")
-    fun closeDoor(
+    suspend fun closeDoor(
         @Query("state") @IntRange(from = 0, to = 1) state: Int,
-        @Query("probeCode") probeCode: String,
+        @Query("deptId") deptId: String,
         @Query("cabinetCode") deviceID: String,
-        @Query("doorNo") doorNo: Int
+        @Query("doorNo") doorNo: Int,
+        @Query("probeState") probeState: Boolean
     ): DefaultResponseJson
 }

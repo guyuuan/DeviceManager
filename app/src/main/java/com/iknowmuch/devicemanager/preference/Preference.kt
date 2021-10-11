@@ -11,6 +11,9 @@ import com.tencent.mmkv.MMKV
 class DeviceIDPreference(mmkv: MMKV) :
     MMKVPreference<String>(mmkv, "device_id", "")
 
+class DeptIDPreference(mmkv: MMKV) :
+    MMKVPreference<String>(mmkv, "dept_id", "")
+
 class HttpServerPreference(mmkv: MMKV) :
     MMKVPreference<String>(mmkv, "http_server", Config.DEFAULT_HTTP_SERVER)
 
