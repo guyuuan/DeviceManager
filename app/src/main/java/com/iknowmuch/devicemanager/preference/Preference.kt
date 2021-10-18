@@ -30,3 +30,7 @@ class ChargingTimePreference(mmkv: MMKV) :
 
 class LastMessageTimePreference(mmkv: MMKV) :
     MMKVPreference<Long>(mmkv, "last_message_time", System.currentTimeMillis())
+
+
+class SerialPortPathPreference(mmkv: MMKV) :
+    MMKVPreference<String>(mmkv, "serial_port_path", "/dev/ttyS2")

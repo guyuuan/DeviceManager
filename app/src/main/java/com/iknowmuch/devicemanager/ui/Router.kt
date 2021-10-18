@@ -6,8 +6,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
@@ -27,9 +29,11 @@ sealed class Scene(val id: String, @StringRes val label: Int? = null) {
     object Loading : Scene(id = "Loading")
     object Home : Scene(id = "home")
     object More : Scene(id = "login")
-    object Scan:Scene(id = "scan")
+    object Scan : Scene(id = "scan")
 }
 
+@ExperimentalCoilApi
+@ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @ExperimentalPagerApi
@@ -50,6 +54,8 @@ fun Router(navController: NavHostController = rememberAnimatedNavController()) {
     }
 }
 
+@ExperimentalCoilApi
+@ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @ExperimentalPagerApi
@@ -64,7 +70,7 @@ private fun NavGraphBuilder.route() {
     composable(Scene.Loading.id) {
         LoadingScene()
     }
-    composable(Scene.Scan.id){
+    composable(Scene.Scan.id) {
         ScanScene()
     }
 }

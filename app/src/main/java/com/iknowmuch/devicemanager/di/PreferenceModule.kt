@@ -9,6 +9,7 @@ import com.iknowmuch.devicemanager.preference.KeepLivePreference
 import com.iknowmuch.devicemanager.preference.LastMessageTimePreference
 import com.iknowmuch.devicemanager.preference.MqttServerPreference
 import com.iknowmuch.devicemanager.preference.PreferenceManager
+import com.iknowmuch.devicemanager.preference.SerialPortPathPreference
 import com.tencent.mmkv.MMKV
 import dagger.Module
 import dagger.Provides
@@ -58,7 +59,11 @@ object PreferenceModule {
 
     @Provides
     @Singleton
-    fun provideDeptIDPreference(mmkv: MMKV): DeptIDPreference = DeptIDPreference(mmkv)
+    fun provideDeptIDPreference(mmkv: MMKV) = DeptIDPreference(mmkv)
+
+    @Provides
+    @Singleton
+    fun provideSerialPortPathPreference(mmkv: MMKV) = SerialPortPathPreference(mmkv)
 
     @Provides
     @Singleton
@@ -70,7 +75,8 @@ object PreferenceModule {
         keepLivePreference: KeepLivePreference,
         autoJumpTimePreference: AutoJumpTimePreference,
         chargingTimePreference: ChargingTimePreference,
-        lastMessageTimePreference: LastMessageTimePreference
+        lastMessageTimePreference: LastMessageTimePreference,
+        serialPortPathPreference: SerialPortPathPreference
     ) = synchronized(PreferenceManager::class) {
         PreferenceManager(
             deviceIDPreference,
@@ -80,7 +86,8 @@ object PreferenceModule {
             keepLivePreference,
             autoJumpTimePreference,
             chargingTimePreference,
-            lastMessageTimePreference
+            lastMessageTimePreference,
+            serialPortPathPreference
         )
     }
 }

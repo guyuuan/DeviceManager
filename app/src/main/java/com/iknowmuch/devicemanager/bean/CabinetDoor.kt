@@ -24,9 +24,10 @@ data class CabinetDoor(
     val probeCode: String?,
     val availableTime: Float?,
     @IntRange(from = 0, to = 100) val devicePower: Int,
-    val remainingChargingTime: Long = 0
+    val remainingChargingTime: Long? = null
 ) {
     sealed class Status(@StringRes val id: Int) {
+        object Disabled : Status(R.string.text_status_disabled)
         object Empty : Status(R.string.text_status_empty)
         object Charging : Status(R.string.text_status_charging)
         object Idle : Status(R.string.text_status_idle)
@@ -36,25 +37,28 @@ data class CabinetDoor(
     }
 }
 
+//0可借用，1使用中，2被预定，3充电中，4有故障，5遗失，6异常，7归还异常
 class CabinetDoorStatusConverter {
     @TypeConverter
     fun toStatus(value: Int) = when (value) {
-        0 -> CabinetDoor.Status.Empty
-        1 -> CabinetDoor.Status.Charging
-        2 -> CabinetDoor.Status.Idle
-        3 -> CabinetDoor.Status.Booked
+        -1 -> CabinetDoor.Status.Disabled
+        0 -> CabinetDoor.Status.Idle
+        1 -> CabinetDoor.Status.Empty
+        2 -> CabinetDoor.Status.Booked
+        3 -> CabinetDoor.Status.Charging
         4 -> CabinetDoor.Status.Fault
         else -> CabinetDoor.Status.Error
     }
 
     @TypeConverter
     fun toInt(status: CabinetDoor.Status) = when (status) {
-        CabinetDoor.Status.Empty -> 0
-        CabinetDoor.Status.Charging -> 1
-        CabinetDoor.Status.Idle -> 2
-        CabinetDoor.Status.Booked -> 3
+        CabinetDoor.Status.Disabled -> -1
+        CabinetDoor.Status.Idle -> 0
+        CabinetDoor.Status.Empty -> 1
+        CabinetDoor.Status.Booked -> 2
+        CabinetDoor.Status.Charging -> 3
         CabinetDoor.Status.Fault -> 4
-        CabinetDoor.Status.Error -> 5
+        CabinetDoor.Status.Error -> 6
     }
 }
 

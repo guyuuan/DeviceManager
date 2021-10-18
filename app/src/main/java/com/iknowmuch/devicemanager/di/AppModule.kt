@@ -9,6 +9,7 @@ import com.iknowmuch.devicemanager.db.CabinetDoorDataBase
 import com.iknowmuch.devicemanager.db.dao.DeviceDao
 import com.iknowmuch.devicemanager.http.api.CabinetApi
 import com.iknowmuch.devicemanager.http.api.DoorApi
+import com.iknowmuch.devicemanager.http.api.WeiXinApi
 import com.iknowmuch.devicemanager.http.moshi.moshi
 import com.iknowmuch.devicemanager.mqtt.MqttManager
 import com.iknowmuch.devicemanager.preference.HttpServerPreference
@@ -24,6 +25,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 /**
@@ -36,6 +38,7 @@ import javax.inject.Singleton
 object AppModule {
     private fun getOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder().apply {
+            connectTimeout(30, TimeUnit.SECONDS)
             if (BuildConfig.DEBUG) {
                 addInterceptor(HttpLoggingInterceptor {
                     Log.d("Retrofit", "log: $it")
@@ -110,5 +113,11 @@ object AppModule {
     @Singleton
     fun provideSerialPortManager() = synchronized(SerialPortManager::class.java) {
         SerialPortManager()
+    }
+
+    @Provides
+    @Singleton
+    fun provideWeiXinApi(retrofit: Retrofit): WeiXinApi = synchronized(WeiXinApi::class) {
+        retrofit.create(WeiXinApi::class.java)
     }
 }

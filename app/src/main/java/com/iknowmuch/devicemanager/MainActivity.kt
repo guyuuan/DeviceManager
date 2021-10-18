@@ -1,7 +1,9 @@
 package com.iknowmuch.devicemanager
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -24,19 +26,16 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.iknowmuch.devicemanager.mqtt.MqttService
+import com.iknowmuch.devicemanager.serialport.Command
 import com.iknowmuch.devicemanager.ui.Router
 import com.iknowmuch.devicemanager.ui.dialog.AppGlobalInfoDialog
 import com.iknowmuch.devicemanager.ui.theme.AppTheme
 import com.permissionx.guolindev.PermissionX
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 private const val TAG = "MainActivity"
 
-@ExperimentalComposeUiApi
-@ExperimentalAnimationApi
-@ExperimentalPagerApi
-@ExperimentalMaterialApi
-@ExperimentalFoundationApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private val windowInsetsController by lazy {
@@ -45,12 +44,17 @@ class MainActivity : AppCompatActivity() {
 
     private var touchCount by mutableStateOf(0)
 
+
+    @ExperimentalComposeUiApi
+    @ExperimentalAnimationApi
+    @ExperimentalPagerApi
+    @ExperimentalMaterialApi
+    @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
         PermissionX.init(this).permissions(
             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA
         ).request { allGranted, _, _ ->
@@ -65,6 +69,7 @@ class MainActivity : AppCompatActivity() {
                             AppGlobalInfoDialog(onDismissRequest = {
                                 touchCount = 0
                             }) {
+                                //点击关闭App按钮的回调
                                 touchCount = 0
                                 finish()
                             }
@@ -74,6 +79,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 finish()
             }
+
         }
         val intent = Intent(this, MqttService::class.java)
         startService(intent)
@@ -100,6 +106,28 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return super.dispatchTouchEvent(event)
+    }
+
+    override fun onResume() {
+        super.onResume()
+//        sm.write(
+//            command = Command(
+//                type = 0x00.toUByte(),
+//                cmd = 0x16.toUByte(),
+//                data = arrayOf(0x1.toUByte())
+//            )
+//        )
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+        try {
+            val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+            Log.d(TAG, "usb devices size :${usbManager.deviceList.size} ")
+            for (entry in usbManager.deviceList) {
+                Log.d(TAG, "device ${entry.key}: ${entry.value.deviceName} ")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "onResume: ", e)
+        }
+
     }
 
 }

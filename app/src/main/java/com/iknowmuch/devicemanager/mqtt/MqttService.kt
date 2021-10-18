@@ -11,13 +11,12 @@ import com.iknowmuch.devicemanager.bean.MQMessage
 import com.iknowmuch.devicemanager.bean.Message
 import com.iknowmuch.devicemanager.http.api.DoorApi
 import com.iknowmuch.devicemanager.http.moshi.moshi
-import com.iknowmuch.devicemanager.preference.MqttServerPreference
 import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.iknowmuch.devicemanager.repository.DoorApiRepository
-import com.iknowmuch.devicemanager.serialport.SerialPortManager
-import com.tencent.mmkv.MMKV
+import com.iknowmuch.devicemanager.repository.SerialPortDataRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -25,11 +24,9 @@ import javax.inject.Inject
 
 private const val TAG = "MqttService"
 
+@ExperimentalUnsignedTypes
 @AndroidEntryPoint
 class MqttService : LifecycleService() {
-
-    @Inject
-    lateinit var serialPortManager: SerialPortManager
 
     @Inject
     lateinit var mqttManager: MqttManager
@@ -40,7 +37,10 @@ class MqttService : LifecycleService() {
     @Inject
     lateinit var doorApiRepository: DoorApiRepository
 
-    private val mqttServer by MqttServerPreference(MMKV.defaultMMKV())
+    @ExperimentalUnsignedTypes
+    @Inject
+    lateinit var serialPortDataRepository: SerialPortDataRepository
+
 
     private val clientID by lazy {
         preferenceManager.deviceID
@@ -51,13 +51,23 @@ class MqttService : LifecycleService() {
         Config.getTopic(preferenceManager.deviceID)
     }
 
+    @ExperimentalCoroutinesApi
     override fun onCreate() {
         Log.d(TAG, "onCreate: ")
         super.onCreate()
         startMqtt()
         collectMqttStatus()
         collectMqttMessage()
+        serialPortDataRepository.init()
 //        startSendMessage()
+        lifecycleScope.launch(Dispatchers.IO) {
+            delay(1000)
+            serialPortDataRepository.lendDevice(1, onOpen = {
+                Log.d(TAG, "开门: $it")
+            }) {
+                Log.d(TAG, "关门: $it")
+            }
+        }
     }
 
 
@@ -73,6 +83,7 @@ class MqttService : LifecycleService() {
 
     override fun onDestroy() {
         Log.d(TAG, "onDestroy: ")
+        serialPortDataRepository.close()
         mqttManager.release()
         super.onDestroy()
     }
@@ -84,7 +95,7 @@ class MqttService : LifecycleService() {
                 val client = mqttManager.getClient(clientID) ?: mqttManager.createClient(
                     this@MqttService,
                     clientID,
-                    mqttServer
+                    preferenceManager.mqttServer
                 )
                 try {
                     if (!client.isConnected) {
@@ -105,7 +116,7 @@ class MqttService : LifecycleService() {
                 val client = mqttManager.getClient(clientID) ?: mqttManager.createClient(
                     this@MqttService,
                     clientID,
-                    mqttServer
+                    preferenceManager.mqttServer
                 )
                 if (!client.isConnected) {
                     mqttManager.connect(client)
@@ -127,6 +138,7 @@ class MqttService : LifecycleService() {
         }
     }
 
+    @ExperimentalCoroutinesApi
     private fun collectMqttMessage() {
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -139,6 +151,7 @@ class MqttService : LifecycleService() {
 
     private val jsonAdapter by lazy { moshi.adapter(Message::class.java) }
 
+    @ExperimentalCoroutinesApi
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun handlerMqttMessage(mqMessage: MQMessage) {
         if (mqMessage.topic != topic || mqMessage.timestamp < preferenceManager.lastMessageTime) return
@@ -149,30 +162,32 @@ class MqttService : LifecycleService() {
             when (json.data.state) {
                 //借
                 0 -> {
-                    serialPortManager.lendDevice()
-                    doorApiRepository.openDoor(
-                        DoorApi.State_Sucess,
-                        json.data.deptId.toString(),
-                        json.data.doorNo
-                    )
-                    delay(1000L * 3)
-                    doorApiRepository.closeDoor(
-                        DoorApi.State_Sucess,
-                        json.data.deptId.toString(),
-                        json.data.doorNo
-                    )
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        serialPortDataRepository.lendDevice(json.data.doorNo, onOpen = {
+//                            doorApiRepository.openDoor(
+//                                if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
+//                                json.data.deptId.toString(),
+//                                json.data.doorNo
+//                            )
+                        }) {
+//                            doorApiRepository.closeDoor(
+//                                if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
+//                                json.data.deptId.toString(),
+//                                json.data.doorNo
+//                            )
+                        }
+                    }
                 }
                 //还
                 else -> {
-                    serialPortManager.returnDevice()
                     doorApiRepository.openDoor(
-                        DoorApi.State_Sucess,
+                        DoorApi.StateSuccess,
                         json.data.deptId.toString(),
                         json.data.doorNo
                     )
                     delay(1000L * 3)
                     doorApiRepository.closeDoor(
-                        DoorApi.State_Sucess,
+                        DoorApi.StateSuccess,
                         json.data.deptId.toString(),
                         json.data.doorNo
                     )

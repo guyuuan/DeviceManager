@@ -1,5 +1,6 @@
 package com.iknowmuch.devicemanager.ui.scene.home
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -35,7 +36,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -47,12 +52,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.insets.navigationBarsPadding
 import com.google.accompanist.insets.statusBarsPadding
 import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.ui.LocalNavController
 import com.iknowmuch.devicemanager.ui.Scene
+import com.iknowmuch.devicemanager.ui.dialog.WXQRCodeDialog
 import com.iknowmuch.devicemanager.ui.theme.BatteryColor
 import com.iknowmuch.devicemanager.ui.theme.BlueBrush
 import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
@@ -66,6 +73,9 @@ import com.iknowmuch.devicemanager.utils.drawColorShadow
  *@createTime: 2021/9/13 15:19
  *@description:
  **/
+@ExperimentalCoilApi
+@ExperimentalComposeUiApi
+@ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
 fun HomeScene(navController: NavController = LocalNavController.current) {
@@ -160,18 +170,26 @@ fun UsingInstructionItem(text: String, modifier: Modifier = Modifier) {
     }
 }
 
+@ExperimentalCoilApi
+@ExperimentalComposeUiApi
+@ExperimentalAnimationApi
 @Composable
 fun BottomButton(
     viewModel: HomeViewModel,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    var showQRCode by remember {
+        mutableStateOf(false)
+    }
     Row(modifier = modifier) {
         Box(
             modifier = Modifier
                 .weight(1f)
                 .height(204.dp)
-                .clickable {}
+                .clickable {
+                    showQRCode = !showQRCode
+                }
                 .background(
                     brush = GreenBrush, shape = MaterialTheme.shapes.medium
                 ),
@@ -203,6 +221,7 @@ fun BottomButton(
             )
         }
     }
+    if (showQRCode) WXQRCodeDialog(onDismissRequest = { showQRCode = false })
 }
 
 @ExperimentalFoundationApi
@@ -240,6 +259,7 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                 brush = BlueBrush, shape = MaterialTheme.shapes.medium
             )
         }
+        CabinetDoor.Status.Disabled,
         CabinetDoor.Status.Charging,
         CabinetDoor.Status.Error,
         CabinetDoor.Status.Fault -> {
@@ -252,6 +272,7 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
     val spacerColor: Color
     CompositionLocalProvider(
         LocalContentColor provides when (data.status) {
+            CabinetDoor.Status.Disabled,
             CabinetDoor.Status.Charging,
             CabinetDoor.Status.Error,
             CabinetDoor.Status.Fault -> {
@@ -277,6 +298,7 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                     val leftColor: Color
                     val rightColor: Color
                     when (data.status) {
+                        CabinetDoor.Status.Disabled,
                         CabinetDoor.Status.Charging,
                         CabinetDoor.Status.Error,
                         CabinetDoor.Status.Fault -> {

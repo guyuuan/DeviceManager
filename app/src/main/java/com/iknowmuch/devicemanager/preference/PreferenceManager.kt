@@ -13,16 +13,20 @@ class PreferenceManager(
     keepLivePreference: KeepLivePreference,
     autoJumpTimePreference: AutoJumpTimePreference,
     chargingTimePreference: ChargingTimePreference,
-    lastMessageTimePreference: LastMessageTimePreference
+    lastMessageTimePreference: LastMessageTimePreference,
+    serialPortPathPreference: SerialPortPathPreference
 ) {
-//    var deviceID by deviceIDPreference
-    var deviceID = "124"
-//    var deptID by deptIDPreference
-    var deptID = "14"
+    var deviceID by deviceIDPreference
+
+    //    var deviceID = "124"
+    var deptID by deptIDPreference
+
+    //    var deptID = "14"
     var httpServer by httpServerPreference
     var mqttServer by mqttServerPreference
     var keepLive by keepLivePreference
     var autoJumpTime by autoJumpTimePreference
     var chargingTime by chargingTimePreference
     var lastMessageTime by lastMessageTimePreference
+    var serialPortPath by serialPortPathPreference
 }

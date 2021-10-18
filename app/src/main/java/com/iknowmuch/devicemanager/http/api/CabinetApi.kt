@@ -1,5 +1,6 @@
 package com.iknowmuch.devicemanager.http.api
 
+import com.iknowmuch.devicemanager.bean.CabinetDataJson
 import com.iknowmuch.devicemanager.bean.DefaultResponseJson
 import com.iknowmuch.devicemanager.bean.HomeDataJson
 import retrofit2.http.Body
@@ -19,7 +20,7 @@ interface CabinetApi {
     * "appVersion":"1.0"
     * */
     @POST("/cgi-bin/onlineStatus")
-    suspend fun heartBeat(@Body map: Map<String, Any>):DefaultResponseJson
+    suspend fun heartBeat(@Body map: Map<String, Any>): DefaultResponseJson
 
     /*
     * cabinetCode: 设备编号
@@ -36,7 +37,8 @@ interface CabinetApi {
     *     "type":"1",    //0探头报警，1智能柜报警
     *     "cabinetCode":"delsmart210929174303",    //智能柜编码
     *     "probeCode":"",    //探头编码
-    *     "state":"0",  //报警类型：探头：0借出超时未还，1探头故障，2 探头遗失，3异常，4归还异常；智能柜：0柜门未关，                1智能柜离线，2硬件设备损坏
+    *     "state":"0",  //报警类型：探头：1借出超时未还，4探头故障，5探头遗失，6异常，7归还异常；
+    *                             智能柜：0柜门未关，1智能柜离线，2硬件设备损坏
     *     "content":"123456",    //报警原因描述
     *     "deptId":"248",    //院区id
     *     "createTime":"2021-10-08 04:54:40",    //报警时间
@@ -44,5 +46,8 @@ interface CabinetApi {
     * }
     * */
     @POST("/cgi-bin/addAlarmRecord")
-    suspend fun reportAlarm():DefaultResponseJson
+    suspend fun reportAlarm(): DefaultResponseJson
+
+    @POST("/android/power")
+    suspend fun reportCabinetData(@Body data: CabinetDataJson): DefaultResponseJson
 }

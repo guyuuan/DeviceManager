@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 扫码头 -->
+    <usb-device vendor-id="2010" product-id="7638" />
+    
+</resources>

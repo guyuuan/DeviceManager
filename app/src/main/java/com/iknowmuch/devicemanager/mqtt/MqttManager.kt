@@ -143,7 +143,13 @@ class MqttManager {
             mqttStatusMap.emit(emptyMap())
         }
         for (entry in clientsMap) {
-            if (entry.value.isConnected) entry.value.disconnect()
+            if (entry.value.isConnected) {
+                entry.value.apply {
+                    disconnect()
+                    unregisterResources()
+                    close()
+                }
+            }
         }
         clientsMap.clear()
     }

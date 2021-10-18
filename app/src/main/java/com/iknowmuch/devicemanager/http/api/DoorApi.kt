@@ -23,8 +23,8 @@ import retrofit2.http.Query
  **/
 interface DoorApi {
     companion object{
-        const val State_Sucess = 1
-        const val State_Failed = 0
+        const val StateSuccess = 1
+        const val StateFailed = 0
     }
     @POST("/android/openDoor")
     suspend fun openDoor(

@@ -30,6 +30,9 @@ data class HomeData(
         val cabinetAddress: String,
         @Json(name = "cabinetDoorCode")
         val cabinetDoorCode: Int,
+        //0启用,1禁用
+        @Json(name = "cabinetDoorState")
+        val cabinetDoorState: Int,
         @Json(name = "CabinetName")
         val cabinetName: String,
         @Json(name = "message")
