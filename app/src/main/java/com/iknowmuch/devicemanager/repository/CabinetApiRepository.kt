@@ -152,4 +152,10 @@ class CabinetApiRepository(
         } catch (e: Exception) {
             Log.e(TAG, "reportAlarm: ", e)
         }
+
+    suspend fun retrunProbe(probeCode: String) = cabinetApi.returnProbe(
+        probeCode = probeCode,
+        cabinetCode = preferenceManager.deviceID,
+        deptId = preferenceManager.deptID
+    )
 }

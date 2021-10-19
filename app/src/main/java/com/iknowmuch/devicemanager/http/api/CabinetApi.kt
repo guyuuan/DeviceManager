@@ -54,4 +54,11 @@ interface CabinetApi {
 
     @POST("/cgi-bin/abnormalCharging")
     suspend fun reportProbeAbnormalCharging(@QueryMap data: Map<String, String>): DefaultResponseJson
+
+    @POST("borrowAndReturn/scanReturn")
+    suspend fun returnProbe(
+        @Query("probeCode") probeCode: String,
+        @Query("cabinetCode") cabinetCode: String,
+        @Query("deptId") deptId: String
+    ): DefaultResponseJson
 }
