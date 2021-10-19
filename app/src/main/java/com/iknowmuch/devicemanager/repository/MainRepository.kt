@@ -9,8 +9,9 @@ import kotlinx.coroutines.CoroutineScope
  *@createTime: 2021/10/12 14:26
  *@description:
  **/
-class MainRepository(
+class MainRepository @ExperimentalUnsignedTypes constructor(
     private val dataBaseRepository: DoorDataBaseRepository,
+    private val serialPortDataRepository: SerialPortDataRepository,
     private val apiRepository: CabinetApiRepository
 ) {
     suspend fun insertCabinetDoor(data: List<CabinetDoor>) =
@@ -21,6 +22,7 @@ class MainRepository(
     suspend fun updateCabinetDoorById(id: Int, modifier: (CabinetDoor) -> CabinetDoor) =
         dataBaseRepository.updateCabinetDoorById(id, modifier)
 
+    @ExperimentalUnsignedTypes
     fun startDataAutoUpdate(
         preferenceManager: PreferenceManager,
         coroutineScope: CoroutineScope,
@@ -28,6 +30,7 @@ class MainRepository(
     ) =
         dataBaseRepository.startDataAutoUpdate(
             apiRepository,
+            serialPortDataRepository,
             preferenceManager,
             coroutineScope,
             totalChargingTime
@@ -37,4 +40,5 @@ class MainRepository(
         deviceRepository: DeviceRepository
     ) = apiRepository.updateLocaleData(dataBaseRepository, deviceRepository)
 
+    suspend fun heartBeat() = apiRepository.heartBeat()
 }

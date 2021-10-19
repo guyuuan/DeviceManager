@@ -13,7 +13,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -39,7 +39,8 @@ class SerialPortDataRepository(
 
     @ExperimentalUnsignedTypes
     private val serialPortData by lazy {
-        serialPortManager.start().stateIn(coroutineScope, SharingStarted.Eagerly, ubyteArrayOf())
+        //使用ShardFlow保存数据,并设置最多可缓存100条指令
+        serialPortManager.start().shareIn(coroutineScope, SharingStarted.Eagerly, 100)
     }
 
 
@@ -55,7 +56,7 @@ class SerialPortDataRepository(
                         when (cmd._cmd) {
                             Command.CMD.DoorState -> {
                                 val doorId = cmd.data[1].toInt() - 1
-                                Log.d("Door", "door state : id =$doorId, state = ${cmd.data.lastOrNull()?.toInt()} ")
+                                stateMap[Command.CMD.DoorState]?.get(doorId)
                                 stateMap[Command.CMD.DoorState]?.set(
                                     doorId,
                                     cmd.data.toUByteArray()
@@ -68,6 +69,11 @@ class SerialPortDataRepository(
                             Command.CMD.OpenAll -> {
                             }
                             Command.CMD.ProbeState -> {
+                                val doorId = cmd.data[0].toInt() - 1
+                                stateMap[Command.CMD.ProbeState]?.set(
+                                    doorId,
+                                    cmd.data.toUByteArray()
+                                )
                             }
                             Command.CMD.StopCharging -> {
                             }
@@ -83,13 +89,28 @@ class SerialPortDataRepository(
         coroutineScope.launch(Dispatchers.IO) {
             while (true) {
                 delay(5 * 1000L)
-                checkDoorState()
-                checkProbeStatus()
+                fetchDoorState()
+                fetchProbeStatus()
             }
         }
     }
 
-    private suspend fun checkDoorState() {
+    //返回true代表状态正常,不需要警报
+    //data第一位为获取柜门状态成功(1)或失败(0),第二位是柜门号,最后一位为0锁打开,1锁关闭
+    fun checkDoorState(id: Int): Boolean {
+        val data = stateMap[Command.CMD.DoorState]?.get(id - 1) ?: ubyteArrayOf()
+        if (data.isEmpty()) return true
+        return 1.toUByte() == data.firstOrNull() && 1.toUByte() == data.lastOrNull()
+    }
+
+    //data最后一位 为1代表设备在线,0代表设备离线
+    fun checkProbeState(id: Int): Boolean {
+        val data = stateMap[Command.CMD.ProbeState]?.get(id - 1) ?: ubyteArrayOf()
+        if (data.isEmpty()) return true
+        return 1.toUByte() == data.lastOrNull()
+    }
+
+    private suspend fun fetchDoorState() {
         repeat(6) {
             delay(500)
             write(
@@ -119,17 +140,18 @@ class SerialPortDataRepository(
                 }
                 delay(100L)
             }
-            return@withTimeoutOrNull false
+            false
         } ?: false
 
         return result
     }
 
     @ExperimentalCoroutinesApi
-    suspend fun lendDevice(
+    suspend fun controlDoor(
         id: Int,
         onOpen: suspend (Boolean) -> Unit,
-        onClose: suspend (Boolean) -> Unit
+        //关门是否成功,探头设备是否在线
+        onClose: suspend (Boolean, Boolean) -> Unit
     ) {
         //开门是否成功回调
         val open = openDoor(id)
@@ -157,16 +179,23 @@ class SerialPortDataRepository(
                 }
                 return@withTimeoutOrNull false
             } ?: false
-            onClose(close)
+            onClose(close, checkProbeState(id))
             Log.d(TAG, "lendDevice close: $close")
         }
     }
 
-    @ExperimentalUnsignedTypes
-    suspend fun write(com: Command) = serialPortManager.write(com)
+    suspend fun stopCharging(id: Int) = write(
+        cmd = Command(
+            cmd = Command.CMD.StopCharging.ubyte,
+            data = arrayOf(id.toUByte())
+        )
+    )
 
     @ExperimentalUnsignedTypes
-    suspend fun checkProbeStatus() {
+    suspend fun write(cmd: Command) = serialPortManager.write(cmd)
+
+    @ExperimentalUnsignedTypes
+    suspend fun fetchProbeStatus() {
         repeat(6) {
             delay(100)
             write(

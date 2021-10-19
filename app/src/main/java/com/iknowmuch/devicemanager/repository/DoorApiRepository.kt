@@ -19,11 +19,11 @@ class DoorApiRepository(
         doorNo = doorNo
     )
 
-    suspend fun closeDoor(state: Int, deptId: String, doorNo: Int) = doorApi.closeDoor(
+    suspend fun closeDoor(state: Int, deptId: String, doorNo: Int,probeState:Boolean) = doorApi.closeDoor(
         state = state,
         deptId = deptId,
         deviceID = preferenceManager.deviceID,
         doorNo = doorNo,
-        probeState = true
+        probeState = probeState
     )
 }

@@ -13,6 +13,7 @@ import com.iknowmuch.devicemanager.http.api.DoorApi
 import com.iknowmuch.devicemanager.http.moshi.moshi
 import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.iknowmuch.devicemanager.repository.DoorApiRepository
+import com.iknowmuch.devicemanager.repository.MainRepository
 import com.iknowmuch.devicemanager.repository.SerialPortDataRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +38,9 @@ class MqttService : LifecycleService() {
     @Inject
     lateinit var doorApiRepository: DoorApiRepository
 
+    @Inject
+    lateinit var mainRepository: MainRepository
+
     @ExperimentalUnsignedTypes
     @Inject
     lateinit var serialPortDataRepository: SerialPortDataRepository
@@ -60,14 +64,14 @@ class MqttService : LifecycleService() {
         collectMqttMessage()
         serialPortDataRepository.init()
 //        startSendMessage()
-        lifecycleScope.launch(Dispatchers.IO) {
-            delay(1000)
-            serialPortDataRepository.lendDevice(1, onOpen = {
-                Log.d(TAG, "开门: $it")
-            }) {
-                Log.d(TAG, "关门: $it")
-            }
-        }
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            delay(1000)
+//            serialPortDataRepository.controlDoor(1, onOpen = {
+//                Log.d(TAG, "开门: $it")
+//            }) {door,probe->
+//                Log.d(TAG, "关门: $door 在线:$probe")
+//            }
+//        }
     }
 
 
@@ -104,6 +108,7 @@ class MqttService : LifecycleService() {
                 } catch (e: Exception) {
                     Log.e(TAG, "startMqtt: ", e)
                 }
+                mainRepository.heartBeat()
                 delay(60 * 1000L)
             }
         }
@@ -159,43 +164,48 @@ class MqttService : LifecycleService() {
             val json = jsonAdapter.fromJson(mqMessage.message) ?: return
             Log.d(TAG, "handlerMqttMessage: $json")
             preferenceManager.deptID = json.data.deptId.toString()
-            when (json.data.state) {
-                //借
-                0 -> {
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        serialPortDataRepository.lendDevice(json.data.doorNo, onOpen = {
-//                            doorApiRepository.openDoor(
-//                                if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
-//                                json.data.deptId.toString(),
-//                                json.data.doorNo
-//                            )
-                        }) {
-//                            doorApiRepository.closeDoor(
-//                                if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
-//                                json.data.deptId.toString(),
-//                                json.data.doorNo
-//                            )
+            lifecycleScope.launch(Dispatchers.IO) {
+                when (json.data.state) {
+                    //借
+                    0 -> {
+                        serialPortDataRepository.controlDoor(json.data.doorNo, onOpen = {
+                            doorApiRepository.openDoor(
+                                if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                json.data.deptId.toString(),
+                                json.data.doorNo
+                            )
+                        }) { door, probe ->
+                            doorApiRepository.closeDoor(
+                                if (door) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                json.data.deptId.toString(),
+                                json.data.doorNo,
+                                probeState = probe
+                            )
+                        }
+                    }
+                    //还
+                    else -> {
+                        serialPortDataRepository.controlDoor(json.data.doorNo, onOpen = {
+                            doorApiRepository.openDoor(
+                                if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                json.data.deptId.toString(),
+                                json.data.doorNo
+                            )
+                        }) { door, probe ->
+                            doorApiRepository.closeDoor(
+                                if (door) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                json.data.deptId.toString(),
+                                json.data.doorNo,
+                                probeState = probe
+                            )
                         }
                     }
                 }
-                //还
-                else -> {
-                    doorApiRepository.openDoor(
-                        DoorApi.StateSuccess,
-                        json.data.deptId.toString(),
-                        json.data.doorNo
-                    )
-                    delay(1000L * 3)
-                    doorApiRepository.closeDoor(
-                        DoorApi.StateSuccess,
-                        json.data.deptId.toString(),
-                        json.data.doorNo
-                    )
-                }
             }
-
         } catch (e: Exception) {
             Log.e(TAG, "handlerMqttMessage: ", e)
+        } finally {
+            preferenceManager.lastMessageTime = mqMessage.timestamp
         }
     }
 

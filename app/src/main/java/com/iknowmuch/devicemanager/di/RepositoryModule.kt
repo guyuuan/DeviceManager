@@ -50,13 +50,19 @@ object RepositoryModule {
             CabinetApiRepository(cabinetApi, preferenceManager)
         }
 
+    @ExperimentalUnsignedTypes
     @Provides
     @Singleton
     fun provideMainRepository(
         apiRepository: CabinetApiRepository,
+        serialPortDataRepository: SerialPortDataRepository,
         dataBaseRepository: DoorDataBaseRepository
     ) = synchronized(MainRepository::class) {
-        MainRepository(dataBaseRepository = dataBaseRepository, apiRepository = apiRepository)
+        MainRepository(
+            dataBaseRepository = dataBaseRepository,
+            serialPortDataRepository = serialPortDataRepository,
+            apiRepository = apiRepository
+        )
     }
 
     @ExperimentalUnsignedTypes

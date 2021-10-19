@@ -6,6 +6,7 @@ import com.iknowmuch.devicemanager.bean.HomeDataJson
 import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.Query
+import retrofit2.http.QueryMap
 
 /**
  *@author: Chen
@@ -20,7 +21,7 @@ interface CabinetApi {
     * "appVersion":"1.0"
     * */
     @POST("/cgi-bin/onlineStatus")
-    suspend fun heartBeat(@Body map: Map<String, Any>): DefaultResponseJson
+    suspend fun heartBeat(@Body map: Map<String, String>): DefaultResponseJson
 
     /*
     * cabinetCode: 设备编号
@@ -46,8 +47,11 @@ interface CabinetApi {
     * }
     * */
     @POST("/cgi-bin/addAlarmRecord")
-    suspend fun reportAlarm(): DefaultResponseJson
+    suspend fun reportAlarm(@Body data: Map<String, String>): DefaultResponseJson
 
     @POST("/android/power")
     suspend fun reportCabinetData(@Body data: CabinetDataJson): DefaultResponseJson
+
+    @POST("/cgi-bin/abnormalCharging")
+    suspend fun reportProbeAbnormalCharging(@QueryMap data: Map<String, String>): DefaultResponseJson
 }

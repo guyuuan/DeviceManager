@@ -3,7 +3,6 @@ package com.iknowmuch.devicemanager.serialport
 import android.util.Log
 import android_serialport_api.SerialPort
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -66,12 +65,14 @@ class SerialPortManager {
 
 
     var pause = false
-    var isRunning = true
+    var isRunning = false
 
     @ExperimentalUnsignedTypes
     fun start(): Flow<UByteArray> {
         val inputStream = inputStream
             ?: throw RuntimeException("You should initialize the serial port before running")
+        if (isRunning) throw RuntimeException("Flow is Running,you can't create another Flow")
+        isRunning = true
         return flow {
             while (true) {
                 if (!isRunning) break
