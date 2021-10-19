@@ -26,9 +26,14 @@ class CabinetApiRepository(
     private val sdf = SimpleDateFormat("yyyy-MM-dd mm:ss:SS")
 
     private suspend fun getHomeData(): HomeDataJson? {
-        return if (preferenceManager.deptID.isNotEmpty()) {
-            cabinetApi.getHomeData(preferenceManager.deviceID, preferenceManager.deptID)
-        } else {
+        return try {
+            if (preferenceManager.deptID.isNotEmpty()) {
+                cabinetApi.getHomeData(preferenceManager.deviceID, preferenceManager.deptID)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "getHomeData: ", e)
             null
         }
     }
@@ -80,14 +85,18 @@ class CabinetApiRepository(
 
     suspend fun reportLocaleData(data: CabinetDataJson) = cabinetApi.reportCabinetData(data)
 
-    suspend fun heartBeat() = cabinetApi.heartBeat(
-        mapOf(
-            "code" to preferenceManager.deviceID,
-            "updateTime" to sdf.format(System.currentTimeMillis()),
-            "deptId" to preferenceManager.deptID,
-            "appVersion" to AppUtils.getAppVersionName()
+    suspend fun heartBeat() = try {
+        cabinetApi.heartBeat(
+            mapOf(
+                "code" to preferenceManager.deviceID,
+                "updateTime" to sdf.format(System.currentTimeMillis()),
+                "deptId" to preferenceManager.deptID,
+                "appVersion" to AppUtils.getAppVersionName()
+            )
         )
-    )
+    } catch (e: Exception) {
+        Log.e(TAG, "heartBeat: ", e)
+    }
 
     suspend fun reportAbnormalCharging(
         probeCode: String,
@@ -95,15 +104,19 @@ class CabinetApiRepository(
         //3充电正常,4异常
         @IntRange(from = 3, to = 4) state: Int
     ) =
-        cabinetApi.reportProbeAbnormalCharging(
-            mapOf(
-                "cabinetCode" to preferenceManager.deviceID,
-                "probeCode" to probeCode,
-                "deptId" to preferenceManager.deptID,
-                "createTime" to createTime,
-                "probeState" to state.toString()
+        try {
+            cabinetApi.reportProbeAbnormalCharging(
+                mapOf(
+                    "cabinetCode" to preferenceManager.deviceID,
+                    "probeCode" to probeCode,
+                    "deptId" to preferenceManager.deptID,
+                    "createTime" to createTime,
+                    "probeState" to state.toString()
+                )
             )
-        )
+        } catch (e: Exception) {
+            Log.e(TAG, "reportAbnormalCharging: ", e)
+        }
 
     suspend fun reportDoorOpenAlarm(
         doorNo: Int, createTime: String, lastTime: String,
@@ -124,15 +137,19 @@ class CabinetApiRepository(
         content: String,
         lastTime: String
     ) =
-        cabinetApi.reportAlarm(
-            mapOf(
-                "type" to type,
-                "cabinetCode" to cabinetCode,
-                "probeCode" to probeCode, "state" to state,
-                "content" to content,
-                "deptId" to deptId,
-                "createTime" to createTime,
-                "lastTime" to lastTime
+        try {
+            cabinetApi.reportAlarm(
+                mapOf(
+                    "type" to type,
+                    "cabinetCode" to cabinetCode,
+                    "probeCode" to probeCode, "state" to state,
+                    "content" to content,
+                    "deptId" to deptId,
+                    "createTime" to createTime,
+                    "lastTime" to lastTime
+                )
             )
-        )
+        } catch (e: Exception) {
+            Log.e(TAG, "reportAlarm: ", e)
+        }
 }
