@@ -1,6 +1,9 @@
 package com.iknowmuch.devicemanager.repository
 
 import android.annotation.SuppressLint
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.util.Log
 import com.iknowmuch.devicemanager.bean.CabinetDataJson
 import com.iknowmuch.devicemanager.bean.CabinetDoor
@@ -27,7 +30,16 @@ private const val TAG = "DoorDataBaseRepository"
 
 class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
     @SuppressLint("SimpleDateFormat")
-    private val sdf = SimpleDateFormat("yyyy-MM-dd mm:ss:SS")
+    private val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS")
+
+    private val handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            if (msg.what in 1..6) {
+                msg.callback.run()
+            }
+        }
+    }
 
     suspend fun insertCabinetDoor(data: List<CabinetDoor>) = cabinetDoorDao.insertCabinetDoors(data)
 
@@ -81,7 +93,7 @@ class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
                                 power = it.devicePower
                             )
                         )
-                        if (it.status != CabinetDoor.Status.Empty || it.status != CabinetDoor.Status.Disabled) {
+                        if (it.status != CabinetDoor.Status.Empty && it.status != CabinetDoor.Status.Disabled) {
                             val probeState = serialPortDataRepository.checkProbeState(it.id)
                             val doorState = serialPortDataRepository.checkDoorState(it.id)
                             when {
@@ -90,51 +102,95 @@ class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
                                         if (abnormalChargingCache.contains(code)) {
                                             apiRepository.reportAbnormalCharging(
                                                 code, createTime = sdf.format(Date()), 3
-                                            )
-                                            abnormalChargingCache.remove(code)
+                                            )?.status?.let { status ->
+                                                if (status == 200) {
+                                                    abnormalChargingCache.remove(code)
+                                                    cabinetDoorDao.updateCabinetDoor(
+                                                        it.copy(
+                                                            status = CabinetDoor.Status.Charging
+                                                        )
+                                                    )
+                                                }
+                                            }
                                         }
-                                        cabinetDoorDao.updateCabinetDoor(it.copy(
-                                                status = CabinetDoor.Status.Charging
-                                            )
-                                        )
+                                        if (doorOpenErrorCache.containsKey(it.id)) {
+                                            apiRepository.clearDoorOpenAlarm(it.id)?.status?.let { status ->
+                                                if (status == 200) {
+                                                    doorOpenErrorCache.remove(it.id)
+                                                    cabinetDoorDao.updateCabinetDoor(
+                                                        it.copy(
+                                                            status = CabinetDoor.Status.Charging
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        }
+
                                     }
+                                    handler.removeMessages(it.id)
                                     doorOpenErrorCache.remove(it.id)
                                 }
                                 !probeState && doorState -> {
                                     //设备不在线,需要上报设备充电异常
-                                    it.probeCode?.let { code ->
-                                        abnormalChargingCache.add(code)
-                                        apiRepository.reportAbnormalCharging(
-                                            code,
-                                            createTime = sdf.format(System.currentTimeMillis()),
-                                            4
-                                        )
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        it.probeCode?.let { code ->
+                                            apiRepository.reportAbnormalCharging(
+                                                code,
+                                                createTime = sdf.format(System.currentTimeMillis()),
+                                                4
+                                            )?.status?.let {
+                                                if (it == 200) {
+                                                    abnormalChargingCache.add(code)
+                                                }
+                                            }
+                                        }
                                     }
+
                                 }
                                 !doorState && probeState -> {
                                     val pair = doorOpenErrorCache[it.id]
                                     //如果为空,则没找到这个柜门的异常,是首次上报
-                                    if (pair == null) {
-                                        val time = System.currentTimeMillis()
-                                        apiRepository.reportDoorOpenAlarm(
-                                            it.id,
-                                            createTime = sdf.format(time),
-                                            lastTime = sdf.format(time)
-                                        )
-                                        doorOpenErrorCache[it.id] = time to time
+                                    val callback = if (pair == null) {
+                                        Runnable {
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                val time = System.currentTimeMillis()
+                                                apiRepository.reportDoorOpenAlarm(
+                                                    it.id,
+                                                    createTime = sdf.format(time),
+                                                    lastTime = sdf.format(time)
+                                                )?.status?.let { status ->
+                                                    if (status == 200) {
+                                                        doorOpenErrorCache[it.id] = time to time
+                                                    }
+                                                }
+                                            }
+                                        }
                                     } else {
-                                        val time = System.currentTimeMillis()
-                                        val lastTime = pair.second
-                                        //距上次上报的时间大于十分钟后再上报
-                                        if (time - lastTime > 10 * 60 * 1000L) {
-                                            apiRepository.reportDoorOpenAlarm(
-                                                it.id,
-                                                sdf.format(pair.first),
-                                                sdf.format(time)
-                                            )
-                                            doorOpenErrorCache[it.id] = pair.first to time
+                                        Runnable {
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                val time = System.currentTimeMillis()
+                                                val lastTime = pair.second
+                                                if (lastTime == 0L) return@launch
+                                                //距上次上报的时间大于十分钟后再上报
+                                                if (time - lastTime > 10 * 60 * 1000L) {
+                                                    apiRepository.reportDoorOpenAlarm(
+                                                        it.id,
+                                                        sdf.format(pair.first),
+                                                        sdf.format(time)
+                                                    )
+                                                    doorOpenErrorCache[it.id] = pair.first to time
+                                                }
+                                            }
                                         }
                                     }
+                                    handler.sendMessageDelayed(
+                                        Message.obtain(handler, callback)
+                                            .apply {
+                                                doorOpenErrorCache[it.id] = 0L to 0L
+                                                what = it.id
+                                            }, 60 * 1000L
+                                    )
+
                                 }
                                 else -> {
                                     //门没有关,设备也不在线

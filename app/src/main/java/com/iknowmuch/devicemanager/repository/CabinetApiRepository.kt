@@ -23,7 +23,7 @@ class CabinetApiRepository(
     private val preferenceManager: PreferenceManager
 ) {
     @SuppressLint("SimpleDateFormat")
-    private val sdf = SimpleDateFormat("yyyy-MM-dd mm:ss:SS")
+    private val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
     private suspend fun getHomeData(): HomeDataJson? {
         return try {
@@ -116,6 +116,7 @@ class CabinetApiRepository(
             )
         } catch (e: Exception) {
             Log.e(TAG, "reportAbnormalCharging: ", e)
+            null
         }
 
     suspend fun reportDoorOpenAlarm(
@@ -124,7 +125,18 @@ class CabinetApiRepository(
         createTime = createTime, lastTime = lastTime,
         type = "1",
         state = "0",
-        content = doorNo.toString(), probeCode = ""
+        content = "柜门$doorNo 未关闭", probeCode = "",
+        cabinetDoorNo = doorNo.toString()
+    )
+
+    suspend fun clearDoorOpenAlarm(
+        doorNo: Int
+    ) = reportAlarm(
+        createTime = "", lastTime = "",
+        type = "1",
+        state = "3",
+        content = "柜门$doorNo 已关闭", probeCode = "",
+        cabinetDoorNo = doorNo.toString()
     )
 
     private suspend fun reportAlarm(
@@ -135,7 +147,8 @@ class CabinetApiRepository(
         probeCode: String,
         state: String,
         content: String,
-        lastTime: String
+        lastTime: String,
+        cabinetDoorNo: String = ""
     ) =
         try {
             cabinetApi.reportAlarm(
@@ -146,11 +159,13 @@ class CabinetApiRepository(
                     "content" to content,
                     "deptId" to deptId,
                     "createTime" to createTime,
-                    "lastTime" to lastTime
+                    "lastTime" to lastTime,
+                    "cabinetDoorNo" to cabinetDoorNo
                 )
             )
         } catch (e: Exception) {
             Log.e(TAG, "reportAlarm: ", e)
+            null
         }
 
     suspend fun retrunProbe(probeCode: String) = cabinetApi.returnProbe(

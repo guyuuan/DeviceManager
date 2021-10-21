@@ -144,10 +144,10 @@ class MqttManager {
         }
         for (entry in clientsMap) {
             if (entry.value.isConnected) {
-                entry.value.apply {
-                    disconnect()
-                    unregisterResources()
-                    close()
+                try{
+                    entry.value.disconnect()
+                }catch (e:Exception){
+                    Log.e(TAG, "release: ", e)
                 }
             }
         }

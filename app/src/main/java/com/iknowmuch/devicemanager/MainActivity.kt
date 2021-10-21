@@ -1,9 +1,11 @@
 package com.iknowmuch.devicemanager
 
 import android.Manifest
-import android.content.Context
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
+import android.content.ComponentName
 import android.content.Intent
-import android.hardware.usb.UsbManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -26,13 +28,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.iknowmuch.devicemanager.mqtt.MqttService
-import com.iknowmuch.devicemanager.serialport.Command
+import com.iknowmuch.devicemanager.preference.KeepLivePreference
+import com.iknowmuch.devicemanager.service.KeepLiveService
 import com.iknowmuch.devicemanager.ui.Router
 import com.iknowmuch.devicemanager.ui.dialog.AppGlobalInfoDialog
 import com.iknowmuch.devicemanager.ui.theme.AppTheme
 import com.permissionx.guolindev.PermissionX
+import com.tencent.mmkv.MMKV
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 private const val TAG = "MainActivity"
 
@@ -45,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private var touchCount by mutableStateOf(0)
 
 
+    @ExperimentalUnsignedTypes
     @ExperimentalComposeUiApi
     @ExperimentalAnimationApi
     @ExperimentalPagerApi
@@ -83,6 +87,27 @@ class MainActivity : AppCompatActivity() {
         }
         val intent = Intent(this, MqttService::class.java)
         startService(intent)
+        initKeepLive()
+    }
+
+    private val keepLiveFlag by KeepLivePreference(MMKV.defaultMMKV())
+    private fun initKeepLive() {
+        if (!keepLiveFlag) return
+        val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+        val builder = JobInfo.Builder(
+            3, ComponentName(
+                packageName,
+                KeepLiveService::class.java.name
+            )
+        )
+        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE)
+        builder.setPersisted(true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            builder.setMinimumLatency((10 * 1000).toLong())
+        } else {
+            builder.setPeriodic((10 * 1000).toLong())
+        }
+        jobScheduler.schedule(builder.build())
     }
 
     private val myHandler = Handler(Looper.getMainLooper())
@@ -110,24 +135,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-//        sm.write(
-//            command = Command(
-//                type = 0x00.toUByte(),
-//                cmd = 0x16.toUByte(),
-//                data = arrayOf(0x1.toUByte())
-//            )
-//        )
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-        try {
-            val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
-            Log.d(TAG, "usb devices size :${usbManager.deviceList.size} ")
-            for (entry in usbManager.deviceList) {
-                Log.d(TAG, "device ${entry.key}: ${entry.value.deviceName} ")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "onResume: ", e)
-        }
-
     }
 
+    @ExperimentalUnsignedTypes
+    override fun onDestroy() {
+        stopService(Intent(this, MqttService::class.java))
+        super.onDestroy()
+    }
 }

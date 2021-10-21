@@ -160,8 +160,8 @@ class SerialPortDataRepository(
         if (open) {
             val close = withTimeoutOrNull(70 * 1000L) {
                 //等待30s后再去判断柜门是否关上
-                repeat(6) {
-                    delay(10 * 1000L)
+                repeat(20) {
+                    delay(3 * 1000L)
                     val arr = stateMap[Command.CMD.DoorState]?.get(id - 1)
                     if (!arr.isNullOrEmpty()) {
                         val checkResult =
@@ -170,7 +170,7 @@ class SerialPortDataRepository(
                             return@withTimeoutOrNull (checkResult).also {
                                 stateMap[Command.CMD.DoorState]?.set(id - 1, ubyteArrayOf())
                             }
-                        } else if (it == 5 && !checkResult) {
+                        } else if (it == 19 && !checkResult) {
                             return@withTimeoutOrNull (checkResult).also {
                                 stateMap[Command.CMD.DoorState]?.set(id - 1, ubyteArrayOf())
                             }

@@ -58,7 +58,8 @@ import com.google.accompanist.insets.statusBarsPadding
 import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.ui.LocalNavController
-import com.iknowmuch.devicemanager.ui.Scene
+import com.iknowmuch.devicemanager.ui.dialog.ReturnProbeDialog
+import com.iknowmuch.devicemanager.ui.dialog.ScanView
 import com.iknowmuch.devicemanager.ui.dialog.WXQRCodeDialog
 import com.iknowmuch.devicemanager.ui.theme.BatteryColor
 import com.iknowmuch.devicemanager.ui.theme.BlueBrush
@@ -73,6 +74,7 @@ import com.iknowmuch.devicemanager.utils.drawColorShadow
  *@createTime: 2021/9/13 15:19
  *@description:
  **/
+@ExperimentalUnsignedTypes
 @ExperimentalCoilApi
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
@@ -89,8 +91,7 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
         Column(
             Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding(),
+                .statusBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TopBar(
@@ -117,10 +118,11 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
                 viewModel = viewModel, navController,
                 Modifier
                     .padding(horizontal = 32.dp)
-                    .padding(bottom = 124.dp, top = 125.dp)
+                    .padding(bottom = 125.dp/2, top = 125.dp/5)
                     .fillMaxWidth()
             )
         }
+        ScanView(viewModel = viewModel, modifier = Modifier.align(Alignment.BottomEnd))
     }
 }
 
@@ -182,10 +184,13 @@ fun BottomButton(
     var showQRCode by remember {
         mutableStateOf(false)
     }
-    Row(modifier = modifier) {
+    var showReturnDialog by remember {
+        mutableStateOf(false)
+    }
+    Row(modifier = modifier, horizontalArrangement = Arrangement.Center) {
         Box(
             modifier = Modifier
-                .weight(1f)
+                .width(494.dp)
                 .height(204.dp)
                 .clickable {
                     showQRCode = !showQRCode
@@ -202,26 +207,30 @@ fun BottomButton(
                 fontWeight = FontWeight.Medium
             )
         }
-        Spacer(modifier = Modifier.width(28.dp))
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(204.dp)
-                .clickable {
-                    navController.navigate(Scene.Scan.id)
-                }
-                .background(brush = BlueBrush, shape = MaterialTheme.shapes.medium),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = stringResource(R.string.text_return),
-                style = MaterialTheme.typography.h4,
-                color = Color.White,
-                fontWeight = FontWeight.Medium
-            )
-        }
+//        Spacer(modifier = Modifier.width(28.dp))
+//        Box(
+//            modifier = Modifier
+//                .weight(1f)
+//                .height(204.dp)
+//                .clickable {
+////                    navController.navigate(Scene.Scan.id)
+//                    showReturnDialog = true
+//                }
+//                .background(brush = BlueBrush, shape = MaterialTheme.shapes.medium),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text(
+//                text = stringResource(R.string.text_return),
+//                style = MaterialTheme.typography.h4,
+//                color = Color.White,
+//                fontWeight = FontWeight.Medium
+//            )
+//        }
     }
     if (showQRCode) WXQRCodeDialog(onDismissRequest = { showQRCode = false })
+    if (showReturnDialog) ReturnProbeDialog(homeViewModel = viewModel) {
+        showReturnDialog = false
+    }
 }
 
 @ExperimentalFoundationApi

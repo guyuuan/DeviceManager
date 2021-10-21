@@ -15,7 +15,7 @@ data class MQMessage(
 
 @JsonClass(generateAdapter = true)
 data class Message(
-    val code: Int,
+    val code: String,
     val message: String,
     val data: Data,
     val time: Long?
@@ -29,10 +29,12 @@ data class Message(
     * */
     @JsonClass(generateAdapter = true)
     data class Data(
-        val probeCode: String,
-        val cabinetCode: String,
-        val state: Int,
-        val doorNo: Int,
-        val deptId: Int
+        val probeCode: String?,
+        val cabinetCode: String?,
+        val state: Int?,
+        val doorNo: Int?,
+        val deptId: Int?,
+        val newAppVersion: String?,
+        val url: String?
     )
 }

@@ -39,6 +39,8 @@ object AppModule {
     private fun getOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder().apply {
             connectTimeout(30, TimeUnit.SECONDS)
+            readTimeout(30, TimeUnit.SECONDS)
+            writeTimeout(30, TimeUnit.SECONDS)
             if (BuildConfig.DEBUG) {
                 addInterceptor(HttpLoggingInterceptor {
                     Log.d("Retrofit", "log: $it")

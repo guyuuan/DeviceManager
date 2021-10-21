@@ -41,4 +41,6 @@ class MainRepository @ExperimentalUnsignedTypes constructor(
     ) = apiRepository.updateLocaleData(dataBaseRepository, deviceRepository)
 
     suspend fun heartBeat() = apiRepository.heartBeat()
+
+    suspend fun returnProbe(probeCode: String) = apiRepository.retrunProbe(probeCode)
 }

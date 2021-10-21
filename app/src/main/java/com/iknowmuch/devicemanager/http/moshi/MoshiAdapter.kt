@@ -6,6 +6,7 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
 import com.squareup.moshi.internal.Util
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.util.*
 
 /**
@@ -16,6 +17,7 @@ import java.util.*
 
 val moshi: Moshi by lazy {
     Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
 //        .add(StringAdapter())
 //        .add(IntAdapter())
 //        .add(FloatAdapter())

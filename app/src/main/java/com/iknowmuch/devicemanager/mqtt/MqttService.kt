@@ -159,47 +159,59 @@ class MqttService : LifecycleService() {
     @ExperimentalCoroutinesApi
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun handlerMqttMessage(mqMessage: MQMessage) {
-        if (mqMessage.topic != topic || mqMessage.timestamp < preferenceManager.lastMessageTime) return
+        if (mqMessage.topic != topic || mqMessage.timestamp < preferenceManager.lastMessageTime) {
+            Log.d(TAG, "handlerMqttMessage: 消息时间${mqMessage.timestamp} 历史消息")
+            return
+        }
         try {
             val json = jsonAdapter.fromJson(mqMessage.message) ?: return
             Log.d(TAG, "handlerMqttMessage: $json")
             preferenceManager.deptID = json.data.deptId.toString()
             lifecycleScope.launch(Dispatchers.IO) {
-                when (json.data.state) {
-                    //借
-                    0 -> {
-                        serialPortDataRepository.controlDoor(json.data.doorNo, onOpen = {
-                            doorApiRepository.openDoor(
-                                if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
-                                json.data.deptId.toString(),
-                                json.data.doorNo
-                            )
-                        }) { door, probe ->
-                            doorApiRepository.closeDoor(
-                                if (door) DoorApi.StateSuccess else DoorApi.StateFailed,
-                                json.data.deptId.toString(),
-                                json.data.doorNo,
-                                probeState = probe
-                            )
+                if (json.data.newAppVersion == null) {
+                    //借还操作
+                    when (json.data.state) {
+                        //借
+                        0 -> {
+                            serialPortDataRepository.controlDoor(json.data.doorNo!!, onOpen = {
+                                Log.d(TAG, "handlerMqttMessage: 开门 $it")
+                                doorApiRepository.openDoor(
+                                    if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                    json.data.deptId.toString(),
+                                    json.data.doorNo
+                                )
+                            }) { door, probe ->
+                                Log.d(TAG, "handlerMqttMessage: 关门 $door 在线$probe")
+                                doorApiRepository.closeDoor(
+                                    if (door) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                    json.data.deptId.toString(),
+                                    json.data.doorNo,
+                                    probeState = probe
+                                )
+                            }
+                        }
+                        //还
+                        else -> {
+                            serialPortDataRepository.controlDoor(json.data.doorNo!!, onOpen = {
+                                Log.d(TAG, "handlerMqttMessage: 开门 $it")
+                                doorApiRepository.openDoor(
+                                    if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                    json.data.deptId.toString(),
+                                    json.data.doorNo
+                                )
+                            }) { door, probe ->
+                                Log.d(TAG, "handlerMqttMessage: 关门 $door 在线$probe")
+                                doorApiRepository.closeDoor(
+                                    if (door) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                    json.data.deptId.toString(),
+                                    json.data.doorNo,
+                                    probeState = probe
+                                )
+                            }
                         }
                     }
-                    //还
-                    else -> {
-                        serialPortDataRepository.controlDoor(json.data.doorNo, onOpen = {
-                            doorApiRepository.openDoor(
-                                if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
-                                json.data.deptId.toString(),
-                                json.data.doorNo
-                            )
-                        }) { door, probe ->
-                            doorApiRepository.closeDoor(
-                                if (door) DoorApi.StateSuccess else DoorApi.StateFailed,
-                                json.data.deptId.toString(),
-                                json.data.doorNo,
-                                probeState = probe
-                            )
-                        }
-                    }
+                } else {
+                    //版本更新
                 }
             }
         } catch (e: Exception) {

@@ -25,6 +25,7 @@ import kotlin.math.roundToLong
  **/
 private const val TAG = "HomeViewModel"
 
+@ExperimentalUnsignedTypes
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     preferenceManager: PreferenceManager,
@@ -102,5 +103,21 @@ class HomeViewModel @Inject constructor(
             repository.insertCabinetDoor(cabinetDoorList)
             deviceRepository.insertDeviceInfo()
         }*/
+    }
+
+    fun returnProbe(probeCode:String){
+        viewModelScope.launch (Dispatchers.IO){
+            try {
+                val response = repository.returnProbe(probeCode)
+                //归还成功
+                if (response.realStatus == 200){
+
+                }else{
+
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "returnProbe: ", e)
+            }
+        }
     }
 }

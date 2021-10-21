@@ -3,6 +3,7 @@ package com.iknowmuch.devicemanager.http.api
 import com.iknowmuch.devicemanager.bean.CabinetDataJson
 import com.iknowmuch.devicemanager.bean.DefaultResponseJson
 import com.iknowmuch.devicemanager.bean.HomeDataJson
+import com.iknowmuch.devicemanager.bean.ReturnProbeResult
 import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.Query
@@ -40,6 +41,7 @@ interface CabinetApi {
     *     "probeCode":"",    //探头编码
     *     "state":"0",  //报警类型：探头：1借出超时未还，4探头故障，5探头遗失，6异常，7归还异常；
     *                             智能柜：0柜门未关，1智能柜离线，2硬件设备损坏
+    *     "cabinetDoorNo":1  //柜门id
     *     "content":"123456",    //报警原因描述
     *     "deptId":"248",    //院区id
     *     "createTime":"2021-10-08 04:54:40",    //报警时间
@@ -60,5 +62,5 @@ interface CabinetApi {
         @Query("probeCode") probeCode: String,
         @Query("cabinetCode") cabinetCode: String,
         @Query("deptId") deptId: String
-    ): DefaultResponseJson
+    ): ReturnProbeResult
 }
