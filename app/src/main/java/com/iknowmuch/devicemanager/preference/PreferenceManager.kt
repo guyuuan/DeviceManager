@@ -14,7 +14,8 @@ class PreferenceManager(
     autoJumpTimePreference: AutoJumpTimePreference,
     chargingTimePreference: ChargingTimePreference,
     lastMessageTimePreference: LastMessageTimePreference,
-    serialPortPathPreference: SerialPortPathPreference
+    serialPortPathPreference: SerialPortPathPreference,
+    tokenPreference: TokenPreference
 ) {
     var deviceID by deviceIDPreference
 
@@ -29,4 +30,5 @@ class PreferenceManager(
     var chargingTime by chargingTimePreference
     var lastMessageTime by lastMessageTimePreference
     var serialPortPath by serialPortPathPreference
+    var token by tokenPreference
 }

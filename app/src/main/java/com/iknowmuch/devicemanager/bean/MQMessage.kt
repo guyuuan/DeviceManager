@@ -17,6 +17,7 @@ data class MQMessage(
 data class Message(
     val code: String,
     val message: String,
+    val userToken: String?,
     val data: Data,
     val time: Long?
 ) {
@@ -35,6 +36,7 @@ data class Message(
         val doorNo: Int?,
         val deptId: Int?,
         val newAppVersion: String?,
-        val url: String?
+        val url: String?,
+        val nowTime: String?
     )
 }

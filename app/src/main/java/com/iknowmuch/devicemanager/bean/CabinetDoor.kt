@@ -21,9 +21,10 @@ data class CabinetDoor(
     val primaryKey: Int = 0,
     val id: Int,
     val status: Status,
-    val probeCode: String?,
-    val availableTime: Float?,
-    @IntRange(from = 0, to = 100) val devicePower: Int,
+    val probeCode: String? =null,
+    val probeName: String?=null,
+    val availableTime: Float? = null,
+    @IntRange(from = 0, to = 100) val devicePower: Int=0,
     val remainingChargingTime: Long? = null
 ) {
     sealed class Status(@StringRes val id: Int) {

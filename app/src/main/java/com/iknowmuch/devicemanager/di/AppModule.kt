@@ -12,7 +12,6 @@ import com.iknowmuch.devicemanager.http.api.DoorApi
 import com.iknowmuch.devicemanager.http.api.WeiXinApi
 import com.iknowmuch.devicemanager.http.moshi.moshi
 import com.iknowmuch.devicemanager.mqtt.MqttManager
-import com.iknowmuch.devicemanager.preference.HttpServerPreference
 import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.iknowmuch.devicemanager.repository.DeviceRepository
 import com.iknowmuch.devicemanager.serialport.SerialPortManager
@@ -36,11 +35,19 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-    private fun getOkHttpClient(): OkHttpClient {
+    @Provides
+    fun getOkHttpClient(preferenceManager: PreferenceManager): OkHttpClient {
         return OkHttpClient.Builder().apply {
             connectTimeout(30, TimeUnit.SECONDS)
             readTimeout(30, TimeUnit.SECONDS)
             writeTimeout(30, TimeUnit.SECONDS)
+            addInterceptor { chain ->
+                val request = chain.request()
+                val newRequest = request.newBuilder()
+                    .addHeader("userToken", preferenceManager.token)
+                    .build()
+                chain.proceed(newRequest)
+            }
             if (BuildConfig.DEBUG) {
                 addInterceptor(HttpLoggingInterceptor {
                     Log.d("Retrofit", "log: $it")
@@ -51,12 +58,15 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideRetrofit(httpServerPreference: HttpServerPreference): Retrofit =
+    fun provideRetrofit(
+        preferenceManager: PreferenceManager,
+        okHttpClient: OkHttpClient
+    ): Retrofit =
         synchronized(Retrofit::class) {
-            val httpServer by httpServerPreference
+            val httpServer = preferenceManager.httpServer
             Retrofit.Builder()
                 .baseUrl(if (httpServer.startsWith(Config.HTTP) || httpServer.startsWith(Config.HTTPS)) httpServer else Config.HTTP + httpServer)
-                .client(getOkHttpClient())
+                .client(okHttpClient)
                 .addConverterFactory(
                     MoshiConverterFactory.create(
                         moshi

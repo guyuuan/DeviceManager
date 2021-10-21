@@ -167,6 +167,7 @@ class MqttService : LifecycleService() {
             val json = jsonAdapter.fromJson(mqMessage.message) ?: return
             Log.d(TAG, "handlerMqttMessage: $json")
             preferenceManager.deptID = json.data.deptId.toString()
+            preferenceManager.token = json.userToken ?: ""
             lifecycleScope.launch(Dispatchers.IO) {
                 if (json.data.newAppVersion == null) {
                     //借还操作

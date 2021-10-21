@@ -10,6 +10,7 @@ import com.iknowmuch.devicemanager.preference.LastMessageTimePreference
 import com.iknowmuch.devicemanager.preference.MqttServerPreference
 import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.iknowmuch.devicemanager.preference.SerialPortPathPreference
+import com.iknowmuch.devicemanager.preference.TokenPreference
 import com.tencent.mmkv.MMKV
 import dagger.Module
 import dagger.Provides
@@ -67,6 +68,10 @@ object PreferenceModule {
 
     @Provides
     @Singleton
+    fun provideTokenPreference(mmkv: MMKV) = TokenPreference(mmkv)
+
+    @Provides
+    @Singleton
     fun providePreferenceManager(
         deviceIDPreference: DeviceIDPreference,
         deptIDPreference: DeptIDPreference,
@@ -76,7 +81,8 @@ object PreferenceModule {
         autoJumpTimePreference: AutoJumpTimePreference,
         chargingTimePreference: ChargingTimePreference,
         lastMessageTimePreference: LastMessageTimePreference,
-        serialPortPathPreference: SerialPortPathPreference
+        serialPortPathPreference: SerialPortPathPreference,
+        tokenPreference: TokenPreference
     ) = synchronized(PreferenceManager::class) {
         PreferenceManager(
             deviceIDPreference,
@@ -87,7 +93,8 @@ object PreferenceModule {
             autoJumpTimePreference,
             chargingTimePreference,
             lastMessageTimePreference,
-            serialPortPathPreference
+            serialPortPathPreference,
+            tokenPreference
         )
     }
 }

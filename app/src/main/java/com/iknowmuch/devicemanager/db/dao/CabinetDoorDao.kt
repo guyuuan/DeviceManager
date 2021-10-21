@@ -23,7 +23,10 @@ interface CabinetDoorDao {
     fun getCabinetDoorFlow(): Flow<List<CabinetDoor>>
 
     @Query("SELECT * FROM cabinet_door")
-    fun getCabinetDoors(): List<CabinetDoor>
+    suspend fun getCabinetDoors(): List<CabinetDoor>
+
+    @Query("SELECT * FROM cabinet_door WHERE status == 3")
+    suspend fun getChargingCabinetDoors(): List<CabinetDoor>
 
     @Query("SELECT * FROM cabinet_door WHERE id == :id")
     suspend fun getCabinetDoorById(id: Int): CabinetDoor?

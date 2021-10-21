@@ -83,16 +83,7 @@ class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
             delay(DelayTime)
             while (true) {
                 if (preferenceManager.deptID.isNotEmpty()) {
-                    val probes = mutableListOf<CabinetDataJson.Probe>()
                     for (it in cabinetDoorDao.getCabinetDoors()) {
-                        probes.add(
-                            CabinetDataJson.Probe(
-                                doorNO = it.id,
-                                probeCode = it.probeCode,
-                                availableTime = it.availableTime?.toInt(),
-                                power = it.devicePower
-                            )
-                        )
                         if (it.status != CabinetDoor.Status.Empty && it.status != CabinetDoor.Status.Disabled) {
                             val probeState = serialPortDataRepository.checkProbeState(it.id)
                             val doorState = serialPortDataRepository.checkDoorState(it.id)
@@ -205,6 +196,14 @@ class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
                                 continue
                             }
                         }
+//                        probes.add(
+//                            CabinetDataJson.Probe(
+//                                doorNO = it.id,
+//                                probeCode = it.probeCode,
+//                                availableTime = it.availableTime?.toInt(),
+//                                power = it.devicePower
+//                            )
+//                        )
                         when (it.status) {
                             CabinetDoor.Status.Disabled,
                             CabinetDoor.Status.Booked,
@@ -236,6 +235,15 @@ class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
                         }
                     }
                     try {
+                        val probes = cabinetDoorDao.getChargingCabinetDoors().map {
+                            CabinetDataJson.Probe(
+                                doorNO = it.id,
+                                probeCode = it.probeCode,
+                                availableTime = it.availableTime?.toInt(),
+                                power = it.devicePower
+                            )
+                        }
+                        if (probes.isEmpty()) continue
                         val newData = CabinetDataJson(
                             cabinetCode = preferenceManager.deviceID,
                             deptId = preferenceManager.deptID.toInt(),

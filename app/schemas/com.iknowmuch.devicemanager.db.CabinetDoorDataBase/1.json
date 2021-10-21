@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "7df3cd5e65cbfe99cf55c1efd85efb68",
+    "identityHash": "6f5b48889c7cf28cca2de993ce3589a4",
     "entities": [
       {
         "tableName": "cabinet_door",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`primaryKey` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `id` INTEGER NOT NULL, `status` INTEGER NOT NULL, `probeCode` TEXT, `availableTime` REAL, `devicePower` INTEGER NOT NULL, `remainingChargingTime` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`primaryKey` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `id` INTEGER NOT NULL, `status` INTEGER NOT NULL, `probeCode` TEXT, `probeName` TEXT, `availableTime` REAL, `devicePower` INTEGER NOT NULL, `remainingChargingTime` INTEGER)",
         "fields": [
           {
             "fieldPath": "primaryKey",
@@ -29,6 +29,12 @@
           {
             "fieldPath": "probeCode",
             "columnName": "probeCode",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "probeName",
+            "columnName": "probeName",
             "affinity": "TEXT",
             "notNull": false
           },
@@ -112,7 +118,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7df3cd5e65cbfe99cf55c1efd85efb68')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6f5b48889c7cf28cca2de993ce3589a4')"
     ]
   }
 }

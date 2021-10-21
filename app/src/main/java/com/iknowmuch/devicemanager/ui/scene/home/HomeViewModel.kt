@@ -43,7 +43,7 @@ class HomeViewModel @Inject constructor(
     )
 
     init {
-        //0可借用，1使用中，2被预定，3充电中，4有故障，5遗失，6异常，7归还异常
+//        0可借用，1使用中，2被预定，3充电中，4有故障，5遗失，6异常，7归还异常
         viewModelScope.launch(Dispatchers.IO) {
             while (true){
                 try {
@@ -64,40 +64,23 @@ class HomeViewModel @Inject constructor(
 /*        val cabinetDoorList = listOf(
             CabinetDoor(
                 id = 1, status = CabinetDoor.Status.Empty,
-                probeCode = null,
-                availableTime = null,
-                devicePower = 0
             ),
             CabinetDoor(
                 id = 2, status = CabinetDoor.Status.Empty,
-                probeCode = null,
-                availableTime = null,
-                devicePower = 0
             ),
             CabinetDoor(
                 id = 3, status = CabinetDoor.Status.Empty,
-                probeCode = null,
-                availableTime = null,
                 devicePower = 0
             ),
             CabinetDoor(
                 id = 4, status = CabinetDoor.Status.Empty,
-                probeCode = null,
-                availableTime = null,
-                devicePower = 0
             ),
             CabinetDoor(
                 id = 5, status = CabinetDoor.Status.Empty,
-                probeCode = null,
-                availableTime = null,
-                devicePower = 0
             ),
             CabinetDoor(
                 id = 6, status = CabinetDoor.Status.Empty,
-                probeCode = null,
-                availableTime = null,
-                devicePower = 0
-            ),
+            )
         )
         viewModelScope.launch(Dispatchers.IO) {
             repository.insertCabinetDoor(cabinetDoorList)
