@@ -1,5 +1,6 @@
 package com.iknowmuch.devicemanager.ui.scene.home
 
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -34,6 +35,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,18 +51,22 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
-import com.google.accompanist.insets.navigationBarsPadding
 import com.google.accompanist.insets.statusBarsPadding
 import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.bean.CabinetDoor
+import com.iknowmuch.devicemanager.mqtt.MQTTStatus
 import com.iknowmuch.devicemanager.ui.LocalNavController
+import com.iknowmuch.devicemanager.ui.dialog.NetworkErrorDialog
 import com.iknowmuch.devicemanager.ui.dialog.ReturnProbeDialog
 import com.iknowmuch.devicemanager.ui.dialog.ScanView
+import com.iknowmuch.devicemanager.ui.dialog.UsingDialog
 import com.iknowmuch.devicemanager.ui.dialog.WXQRCodeDialog
+import com.iknowmuch.devicemanager.ui.scene.loading.LoadingViewModel
 import com.iknowmuch.devicemanager.ui.theme.BatteryColor
 import com.iknowmuch.devicemanager.ui.theme.BlueBrush
 import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
@@ -74,6 +80,8 @@ import com.iknowmuch.devicemanager.utils.drawColorShadow
  *@createTime: 2021/9/13 15:19
  *@description:
  **/
+private const val TAG = "HomeScene"
+
 @ExperimentalUnsignedTypes
 @ExperimentalCoilApi
 @ExperimentalComposeUiApi
@@ -82,7 +90,10 @@ import com.iknowmuch.devicemanager.utils.drawColorShadow
 @Composable
 fun HomeScene(navController: NavController = LocalNavController.current) {
     val viewModel = hiltViewModel<HomeViewModel>()
+    val loadingViewModel = hiltViewModel<LoadingViewModel>()
     val cabinetDoorList by viewModel.cabinetDoorList.collectAsState()
+    val mqStatus by loadingViewModel.mqttState.collectAsState()
+    val controlResult by viewModel.controlResult.collectAsState()
     Box(
         Modifier
             .fillMaxSize()
@@ -115,14 +126,21 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
                     .weight(1f)
             )
             BottomButton(
+                mqStatus,
                 viewModel = viewModel, navController,
                 Modifier
                     .padding(horizontal = 32.dp)
-                    .padding(bottom = 125.dp/2, top = 125.dp/5)
+                    .padding(bottom = 125.dp / 2, top = 125.dp / 5)
                     .fillMaxWidth()
             )
         }
-        ScanView(viewModel = viewModel, modifier = Modifier.align(Alignment.BottomEnd))
+        ScanView(mqStatus, viewModel = viewModel, modifier = Modifier.align(Alignment.BottomEnd))
+    }
+    if (controlResult.doorNo != 0) UsingDialog(data = controlResult) {
+
+    }
+    LaunchedEffect(key1 = controlResult){
+        Log.d(TAG, "controlResult: $controlResult")
     }
 }
 
@@ -172,11 +190,13 @@ fun UsingInstructionItem(text: String, modifier: Modifier = Modifier) {
     }
 }
 
+@ExperimentalUnsignedTypes
 @ExperimentalCoilApi
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 @Composable
 fun BottomButton(
+    mqStatus: MQTTStatus,
     viewModel: HomeViewModel,
     navController: NavController,
     modifier: Modifier = Modifier
@@ -184,7 +204,7 @@ fun BottomButton(
     var showQRCode by remember {
         mutableStateOf(false)
     }
-    var showReturnDialog by remember {
+    var showOffline by remember {
         mutableStateOf(false)
     }
     Row(modifier = modifier, horizontalArrangement = Arrangement.Center) {
@@ -193,6 +213,10 @@ fun BottomButton(
                 .width(494.dp)
                 .height(204.dp)
                 .clickable {
+                    if (mqStatus != MQTTStatus.CONNECT_SUCCESS) {
+                        showOffline = true
+                        return@clickable
+                    }
                     showQRCode = !showQRCode
                 }
                 .background(
@@ -207,29 +231,14 @@ fun BottomButton(
                 fontWeight = FontWeight.Medium
             )
         }
-//        Spacer(modifier = Modifier.width(28.dp))
-//        Box(
-//            modifier = Modifier
-//                .weight(1f)
-//                .height(204.dp)
-//                .clickable {
-////                    navController.navigate(Scene.Scan.id)
-//                    showReturnDialog = true
-//                }
-//                .background(brush = BlueBrush, shape = MaterialTheme.shapes.medium),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Text(
-//                text = stringResource(R.string.text_return),
-//                style = MaterialTheme.typography.h4,
-//                color = Color.White,
-//                fontWeight = FontWeight.Medium
-//            )
-//        }
     }
+    val result by viewModel.returnResult
     if (showQRCode) WXQRCodeDialog(onDismissRequest = { showQRCode = false })
-    if (showReturnDialog) ReturnProbeDialog(homeViewModel = viewModel) {
-        showReturnDialog = false
+    if (result.first != -1) ReturnProbeDialog(homeViewModel = viewModel) {
+        viewModel.clearReturnDialog()
+    }
+    if (showOffline) NetworkErrorDialog {
+        showOffline = false
     }
 }
 
@@ -350,7 +359,7 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                 )
                 Text(
                     text = if (data.probeName != null) stringResource(R.string.text_device_code).format(
-                        data.probeCode
+                        data.probeName
                     ) else stringResource(
                         id = R.string.text_empty_device_code
                     ),
@@ -359,7 +368,7 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = if (data.availableTime != null) stringResource(R.string.text_available_time).format(
-                        data.availableTime
+                        data.availableTime.toInt()
                     ) else
                         stringResource(id = R.string.text_empty_available_time),
                     style = MaterialTheme.typography.body1

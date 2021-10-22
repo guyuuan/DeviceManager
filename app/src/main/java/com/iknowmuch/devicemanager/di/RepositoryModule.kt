@@ -29,12 +29,15 @@ import javax.inject.Singleton
 @Module
 object RepositoryModule {
 
+    @ExperimentalUnsignedTypes
     @Provides
     @Singleton
-    fun provideDoorDataBaseRepository(cabinetDoorDao: CabinetDoorDao) =
-        synchronized(DoorDataBaseRepository::class) {
-            DoorDataBaseRepository(cabinetDoorDao)
-        }
+    fun provideDoorDataBaseRepository(
+        cabinetDoorDao: CabinetDoorDao,
+        serialPortDataRepository: SerialPortDataRepository
+    ) = synchronized(DoorDataBaseRepository::class) {
+        DoorDataBaseRepository(cabinetDoorDao, serialPortDataRepository)
+    }
 
     @Provides
     @Singleton

@@ -38,9 +38,9 @@ object AppModule {
     @Provides
     fun getOkHttpClient(preferenceManager: PreferenceManager): OkHttpClient {
         return OkHttpClient.Builder().apply {
-            connectTimeout(30, TimeUnit.SECONDS)
-            readTimeout(30, TimeUnit.SECONDS)
-            writeTimeout(30, TimeUnit.SECONDS)
+            connectTimeout(300, TimeUnit.SECONDS)
+            readTimeout(300, TimeUnit.SECONDS)
+            writeTimeout(300, TimeUnit.SECONDS)
             addInterceptor { chain ->
                 val request = chain.request()
                 val newRequest = request.newBuilder()

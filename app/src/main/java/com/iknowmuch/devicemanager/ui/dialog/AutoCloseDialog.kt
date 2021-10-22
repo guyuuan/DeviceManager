@@ -6,9 +6,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.CircularProgressIndicator
@@ -27,17 +29,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowInsetsCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.repository.WeiXinRepository
+import com.iknowmuch.devicemanager.ui.LocalInsetsController
 import com.iknowmuch.devicemanager.ui.scene.home.WeiXinViewModel
 import kotlinx.coroutines.delay
 
@@ -51,13 +57,20 @@ import kotlinx.coroutines.delay
 fun AutoCloseDialog(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
-    properties: DialogProperties = DialogProperties(dismissOnClickOutside = false,usePlatformDefaultWidth = false),
+    properties: DialogProperties = DialogProperties(
+        dismissOnClickOutside = false,
+        usePlatformDefaultWidth = false
+    ),
     content: @Composable () -> Unit,
 ) {
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = properties
     ) {
+        val insetsController = LocalInsetsController.current
+        LaunchedEffect(key1 = Unit) {
+            insetsController.hide(WindowInsetsCompat.Type.systemBars())
+        }
         Surface(
             modifier = modifier, color = MaterialTheme.colors.background,
             shape = MaterialTheme.shapes.large
@@ -98,7 +111,10 @@ fun WXQRCodeDialog(
                         Text(text = state.error.toString())
                     }
                     is WeiXinRepository.DownloadResult.Progress -> {
-                        Box(modifier = Modifier.fillMaxSize(),contentAlignment = Alignment.Center){
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(100.dp),
                                 strokeWidth = 8.dp
@@ -108,7 +124,7 @@ fun WXQRCodeDialog(
                     is WeiXinRepository.DownloadResult.Success -> {
                         Image(
                             painter = rememberImagePainter(data = state.file),
-                            modifier= Modifier
+                            modifier = Modifier
                                 .padding(vertical = 75.dp)
                                 .size(415.dp),
                             contentDescription = "QRCode"
@@ -118,6 +134,30 @@ fun WXQRCodeDialog(
             }
         }
 
+    }
+}
+
+@ExperimentalComposeUiApi
+@Composable
+fun NetworkErrorDialog(onDismissRequest: () -> Unit) {
+    AutoCloseDialog(onDismissRequest = onDismissRequest) {
+        AutoCloseColumn(
+            time = 5,
+            modifier = Modifier.fillMaxWidth(),
+            onCountdownEnd = { onDismissRequest() }) {
+            Column(
+                Modifier
+                    .padding(top = 43.dp, bottom = 28.dp)
+                    .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_offline),
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.height(54.dp))
+                Text(text = "当前网络不可用，请检查网络设置", fontSize = 28.sp, color = Color(0xFF838383))
+            }
+        }
     }
 }
 

@@ -1,7 +1,6 @@
 package com.iknowmuch.devicemanager.bean
 
 import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
 
 data class ReturnProbeResult(
     @Json(name = "data")
@@ -29,6 +28,7 @@ data class ReturnProbeResult(
         )
     }
 
-    val realStatus = data?.data?.status?:status
-    val realMessage = data?.data?.msg?:msg
+    val status2 = data?.data?.status
+    val realMessage = data?.data?.msg ?: data?.msg ?: msg
+    val status1 = data?.status
 }

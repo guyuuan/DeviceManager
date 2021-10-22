@@ -42,5 +42,5 @@ class MainRepository @ExperimentalUnsignedTypes constructor(
 
     suspend fun heartBeat() = apiRepository.heartBeat()
 
-    suspend fun returnProbe(probeCode: String) = apiRepository.retrunProbe(probeCode)
+    suspend fun returnProbe(probeCode: String) = apiRepository.returnProbe(probeCode)
 }

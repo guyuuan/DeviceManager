@@ -7,6 +7,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import coil.annotation.ExperimentalCoilApi
@@ -39,7 +40,9 @@ sealed class Scene(val id: String, @StringRes val label: Int? = null) {
 @ExperimentalPagerApi
 @ExperimentalAnimationApi
 @Composable
-fun Router(navController: NavHostController = rememberAnimatedNavController()) {
+fun Router(
+    navController: NavHostController = rememberAnimatedNavController(),
+) {
     CompositionLocalProvider(
         LocalNavController provides navController,
     ) {

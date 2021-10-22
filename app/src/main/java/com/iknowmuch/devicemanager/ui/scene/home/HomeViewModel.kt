@@ -1,14 +1,16 @@
 package com.iknowmuch.devicemanager.ui.scene.home
 
 import android.util.Log
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iknowmuch.devicemanager.Config
-import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.bean.Device
 import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.iknowmuch.devicemanager.repository.DeviceRepository
 import com.iknowmuch.devicemanager.repository.MainRepository
+import com.iknowmuch.devicemanager.repository.SerialPortDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -30,8 +32,14 @@ private const val TAG = "HomeViewModel"
 class HomeViewModel @Inject constructor(
     preferenceManager: PreferenceManager,
     private val deviceRepository: DeviceRepository,
+    serialPortDataRepository: SerialPortDataRepository,
     private val repository: MainRepository
 ) : ViewModel() {
+
+    val controlResult = serialPortDataRepository.controlResult
+    private var _returnResult = mutableStateOf(-1 to "")
+
+    val returnResult: State<Pair<Int, String>> get() = _returnResult
     val deviceID = preferenceManager.deviceID
     val cabinetDoorList = repository.getCabinetDoorFlow().stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(), emptyList()
@@ -45,14 +53,13 @@ class HomeViewModel @Inject constructor(
     init {
 //        0可借用，1使用中，2被预定，3充电中，4有故障，5遗失，6异常，7归还异常
         viewModelScope.launch(Dispatchers.IO) {
-            while (true){
+            while (true) {
                 try {
-                    deviceRepository.updateDeviceInfo()
                     repository.updateLocaleData(deviceRepository)
                 } catch (e: Exception) {
                     Log.e(TAG, "updateHomeData: ", e)
                 }
-                delay(60*1000L)
+                delay(10 * 1000L)
             }
         }
 
@@ -88,19 +95,27 @@ class HomeViewModel @Inject constructor(
         }*/
     }
 
-    fun returnProbe(probeCode:String){
-        viewModelScope.launch (Dispatchers.IO){
+    fun returnProbe(probeCode: String) {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = repository.returnProbe(probeCode)
-                //归还成功
-                if (response.realStatus == 200){
+                if (response.status2 == 200 && response.status == 200 && response.status1 == 200) {
+                    //归还成功
 
-                }else{
-
+                } else {
+                    //归还失败
+                    Log.d(TAG, "returnProbe: ${response.realMessage}")
                 }
+                _returnResult.value =
+                    (response.status2 ?: response.status1
+                    ?: response.status) to response.realMessage
             } catch (e: Exception) {
                 Log.e(TAG, "returnProbe: ", e)
             }
         }
+    }
+
+    fun clearReturnDialog() {
+        _returnResult.value = -1 to ""
     }
 }

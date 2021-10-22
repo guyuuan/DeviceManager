@@ -18,6 +18,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,10 +34,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowInsetsCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.blankj.utilcode.util.AppUtils
 import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.mqtt.MQTTStatus
+import com.iknowmuch.devicemanager.ui.LocalInsetsController
 import com.iknowmuch.devicemanager.ui.scene.loading.InfoDetail
 import com.iknowmuch.devicemanager.ui.scene.loading.LoadingViewModel
 import com.iknowmuch.devicemanager.ui.theme.CorrectBlue
@@ -66,6 +69,10 @@ fun AppGlobalInfoDialog(
     Dialog(onDismissRequest = onDismissRequest
     ,properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        val insetsController = LocalInsetsController.current
+        LaunchedEffect(key1 = Unit) {
+            insetsController.hide(WindowInsetsCompat.Type.systemBars())
+        }
         Column(
             Modifier
                 .fillMaxWidth()

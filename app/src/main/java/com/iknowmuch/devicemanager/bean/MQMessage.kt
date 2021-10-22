@@ -37,6 +37,6 @@ data class Message(
         val deptId: Int?,
         val newAppVersion: String?,
         val url: String?,
-        val nowTime: String?
+//        val nowTime: String?
     )
 }

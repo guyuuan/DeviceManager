@@ -19,6 +19,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -26,10 +27,12 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.iknowmuch.devicemanager.mqtt.MqttService
 import com.iknowmuch.devicemanager.preference.KeepLivePreference
 import com.iknowmuch.devicemanager.service.KeepLiveService
+import com.iknowmuch.devicemanager.ui.LocalInsetsController
 import com.iknowmuch.devicemanager.ui.Router
 import com.iknowmuch.devicemanager.ui.dialog.AppGlobalInfoDialog
 import com.iknowmuch.devicemanager.ui.theme.AppTheme
@@ -48,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     private var touchCount by mutableStateOf(0)
 
 
+    @ExperimentalCoilApi
     @ExperimentalUnsignedTypes
     @ExperimentalComposeUiApi
     @ExperimentalAnimationApi
@@ -65,19 +69,23 @@ class MainActivity : AppCompatActivity() {
             if (allGranted) {
                 setContent {
                     AppTheme {
-                        // A surface container using the 'background' color from the theme
-                        Surface(color = MaterialTheme.colors.background) {
-                            Router()
-                        }
-                        if (touchCount > 7) {
-                            AppGlobalInfoDialog(onDismissRequest = {
-                                touchCount = 0
-                            }) {
-                                //点击关闭App按钮的回调
-                                touchCount = 0
-                                finish()
+                        CompositionLocalProvider(LocalInsetsController provides windowInsetsController) {
+                            Surface(color = MaterialTheme.colors.background) {
+                                Router()
+                            }
+
+                            if (touchCount > 7) {
+                                AppGlobalInfoDialog(onDismissRequest = {
+                                    touchCount = 0
+                                }) {
+                                    //点击关闭App按钮的回调
+                                    touchCount = 0
+                                    finish()
+                                }
                             }
                         }
+                        // A surface container using the 'background' color from the theme
+
                     }
                 }
             } else {
@@ -92,8 +100,11 @@ class MainActivity : AppCompatActivity() {
 
     private val keepLiveFlag by KeepLivePreference(MMKV.defaultMMKV())
     private fun initKeepLive() {
-        if (!keepLiveFlag) return
         val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+        if (!keepLiveFlag) {
+            jobScheduler.cancel(3)
+            return
+        }
         val builder = JobInfo.Builder(
             3, ComponentName(
                 packageName,

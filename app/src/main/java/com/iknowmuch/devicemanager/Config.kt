@@ -11,7 +11,9 @@ object Config {
     const val TCP = "tcp://"
     const val SSL = "ssl://"
     const val Hour = 1000L * 60 * 60
-//    const val DEFAULT_HTTP_SERVER = "http://10.6.3.96:8081"
+    const val Minute = 1000L * 60
+
+    //    const val DEFAULT_HTTP_SERVER = "http://10.6.3.96:8081"
     const val DEFAULT_HTTP_SERVER = "http://asset.iknowmuch.com"
     const val DEFAULT_AUTO_JUMP_TIME = 30
     const val DEFAULT_CHARGING_TIME = 2f
@@ -22,4 +24,6 @@ object Config {
 
     private const val MQTT_TOPIC = "android.asset.topic."
     fun getTopic(id: String) = "$MQTT_TOPIC$id"
+
+    const val ErrorReportDelay = 60* 10 * 1000L
 }

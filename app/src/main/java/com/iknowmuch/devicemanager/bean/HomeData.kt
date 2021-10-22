@@ -33,6 +33,9 @@ data class HomeData(
         //0启用,1禁用
         @Json(name = "cabinetDoorState")
         val cabinetDoorState: Int,
+        //0开,1关
+        @Json(name = "closeState")
+        val closeState:Int,
         @Json(name = "CabinetName")
         val cabinetName: String,
         @Json(name = "message")
@@ -40,14 +43,17 @@ data class HomeData(
     ) {
         @JsonClass(generateAdapter = true)
         data class Message(
+
             @Json(name = "availableTime")
-            val availableTime: Int?,
+            val availableTime: String?,
             @Json(name = "cabinetDoorNo")
             val cabinetDoorNo: Int,
             @Json(name = "power")
             val power: Int?,
             @Json(name = "probeCode")
             val probeCode: String,
+            @Json(name = "probeName")
+            val probeName: String,
             @Json(name = "probeState")
             val probeState: Int
         )

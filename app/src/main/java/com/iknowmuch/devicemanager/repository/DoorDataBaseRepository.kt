@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.util.Log
+import com.iknowmuch.devicemanager.Config
 import com.iknowmuch.devicemanager.bean.CabinetDataJson
 import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.db.dao.CabinetDoorDao
@@ -16,7 +17,6 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
@@ -28,15 +28,20 @@ import kotlin.math.roundToLong
 const val DelayTime = 1000L * 10
 private const val TAG = "DoorDataBaseRepository"
 
-class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
+class DoorDataBaseRepository(
+    private val cabinetDoorDao: CabinetDoorDao,
+    serialPortDataRepository: SerialPortDataRepository
+) {
+    @ExperimentalUnsignedTypes
+    private val controlResult = serialPortDataRepository.controlResult
+
     @SuppressLint("SimpleDateFormat")
-    private val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS")
+    private val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
     private val handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
-            super.handleMessage(msg)
             if (msg.what in 1..6) {
-                msg.callback.run()
+                super.handleMessage(msg)
             }
         }
     }
@@ -66,7 +71,7 @@ class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
     private var oldData: CabinetDataJson? = null
 
     //值为充电异常的设备id
-    private val abnormalChargingCache = HashSet<String>()
+    private val abnormalChargingCache = HashMap<String, Pair<Long, Long>>()
 
     //柜门未关闭异常缓存,key为柜门id,value为首次发现异常时间和之后再次上报的时间
     private val doorOpenErrorCache = HashMap<Int, Pair<Long, Long>>()
@@ -83,128 +88,186 @@ class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
             delay(DelayTime)
             while (true) {
                 if (preferenceManager.deptID.isNotEmpty()) {
-                    for (it in cabinetDoorDao.getCabinetDoors()) {
-                        if (it.status != CabinetDoor.Status.Empty && it.status != CabinetDoor.Status.Disabled) {
-                            val probeState = serialPortDataRepository.checkProbeState(it.id)
-                            val doorState = serialPortDataRepository.checkDoorState(it.id)
+                    for (cabinetDoor in cabinetDoorDao.getCabinetDoors()) {
+                        if (cabinetDoor.status != CabinetDoor.Status.Empty && cabinetDoor.status != CabinetDoor.Status.Disabled) {
+                            val result = controlResult.value
+                            val probeState =
+                                serialPortDataRepository.checkProbeState(cabinetDoor.id)
+                            val doorState = serialPortDataRepository.checkDoorState(cabinetDoor.id)
                             when {
                                 doorState && probeState -> {
-                                    it.probeCode?.let { code ->
-                                        if (abnormalChargingCache.contains(code)) {
-                                            apiRepository.reportAbnormalCharging(
-                                                code, createTime = sdf.format(Date()), 3
-                                            )?.status?.let { status ->
-                                                if (status == 200) {
-                                                    abnormalChargingCache.remove(code)
-                                                    cabinetDoorDao.updateCabinetDoor(
-                                                        it.copy(
-                                                            status = CabinetDoor.Status.Charging
-                                                        )
-                                                    )
-                                                }
-                                            }
+                                    //清除充电异常警报
+                                    if (cabinetDoor.probeCode != null) {
+                                        if (abnormalChargingCache.contains(cabinetDoor.probeCode) || cabinetDoor.status == CabinetDoor.Status.Error) {
+                                            abnormalChargingCache.remove(cabinetDoor.probeCode)
+                                            clearDoorOpenAlarm(
+                                                apiRepository,
+                                                cabinetDoor,
+                                                totalChargingTime
+                                            )
                                         }
-                                        if (doorOpenErrorCache.containsKey(it.id)) {
-                                            apiRepository.clearDoorOpenAlarm(it.id)?.status?.let { status ->
-                                                if (status == 200) {
-                                                    doorOpenErrorCache.remove(it.id)
-                                                    cabinetDoorDao.updateCabinetDoor(
-                                                        it.copy(
-                                                            status = CabinetDoor.Status.Charging
-                                                        )
-                                                    )
-                                                }
-                                            }
+                                    } else {
+                                        //清除门未关异常
+                                        if (doorOpenErrorCache.containsKey(cabinetDoor.id) || cabinetDoorDao.getCabinetDoorById(
+                                                cabinetDoor.id
+                                            )?.status == CabinetDoor.Status.Error
+                                        ) {
+                                            Log.d("TAG", "清除门未关异常: ")
+                                            clearDoorOpenAlarm(
+                                                apiRepository,
+                                                cabinetDoor,
+                                                totalChargingTime
+                                            )
                                         }
-
                                     }
-                                    handler.removeMessages(it.id)
-                                    doorOpenErrorCache.remove(it.id)
+                                    handler.removeMessages(cabinetDoor.id)
                                 }
-                                !probeState && doorState -> {
+                                !probeState && doorState && result.doorNo != cabinetDoor.id -> {
                                     //设备不在线,需要上报设备充电异常
-                                    coroutineScope.launch(Dispatchers.IO) {
-                                        it.probeCode?.let { code ->
-                                            apiRepository.reportAbnormalCharging(
-                                                code,
-                                                createTime = sdf.format(System.currentTimeMillis()),
-                                                4
-                                            )?.status?.let {
-                                                if (it == 200) {
-                                                    abnormalChargingCache.add(code)
+//                                    coroutineScope.launch(Dispatchers.IO) {
+                                    val code = cabinetDoor.probeCode
+                                    if (code != null) {
+                                        val pair = abnormalChargingCache[code]
+                                        val callback = if (pair == null) {
+                                            Runnable {
+                                                handler.removeMessages(cabinetDoor.id)
+                                                coroutineScope.launch(Dispatchers.IO) {
+                                                    val time = System.currentTimeMillis()
+                                                    apiRepository.reportAbnormalCharging(
+                                                        code,
+                                                        createTime = sdf.format(time),
+                                                        lastTime = sdf.format(time)
+                                                    )?.status?.let { status ->
+                                                        if (status == 200) {
+                                                            abnormalChargingCache[code] =
+                                                                time to time
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            Runnable {
+                                                if (abnormalChargingCache[code] == null) return@Runnable
+                                                coroutineScope.launch(Dispatchers.IO) {
+                                                    val currentTime = System.currentTimeMillis()
+                                                    val lastTime = pair.second
+                                                    if (lastTime == 0L) return@launch
+                                                    if (handler.hasMessages(cabinetDoor.id)) {
+                                                        handler.removeMessages(cabinetDoor.id)
+                                                    }
+                                                    if (currentTime - lastTime > Config.ErrorReportDelay) {
+                                                        apiRepository.reportAbnormalCharging(
+                                                            code,
+                                                            createTime = sdf.format(pair.first),
+                                                            lastTime = sdf.format(currentTime)
+                                                        )?.status?.let { status ->
+                                                            handler.removeMessages(cabinetDoor.id)
+                                                            if (status == 200) {
+//                                                                cabinetDoorDao.updateCabinetDoor(
+//                                                                    cabinetDoor.copy(
+//                                                                        status = CabinetDoor.Status.Error,
+//                                                                    )
+//                                                                )
+                                                                abnormalChargingCache[code] =
+                                                                    pair.first to currentTime
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
+                                        if (!handler.hasMessages(cabinetDoor.id)) {
+                                            handler.sendMessageDelayed(
+                                                Message.obtain(handler, callback)
+                                                    .apply {
+                                                        what = cabinetDoor.id
+                                                    }, 1000L
+                                            )
+                                        }
+                                    } else {
+                                        clearDoorOpenAlarm(
+                                            apiRepository,
+                                            cabinetDoor,
+                                            totalChargingTime
+                                        )
                                     }
-
                                 }
-                                !doorState && probeState -> {
-                                    val pair = doorOpenErrorCache[it.id]
+                                !doorState && result.doorNo != cabinetDoor.id -> {
+                                    val pair = doorOpenErrorCache[cabinetDoor.id]
                                     //如果为空,则没找到这个柜门的异常,是首次上报
                                     val callback = if (pair == null) {
                                         Runnable {
+                                            if (doorOpenErrorCache[cabinetDoor.id] != null) return@Runnable
+                                            handler.removeMessages(cabinetDoor.id)
                                             coroutineScope.launch(Dispatchers.IO) {
                                                 val time = System.currentTimeMillis()
                                                 apiRepository.reportDoorOpenAlarm(
-                                                    it.id,
+                                                    cabinetDoor.id,
                                                     createTime = sdf.format(time),
                                                     lastTime = sdf.format(time)
                                                 )?.status?.let { status ->
                                                     if (status == 200) {
-                                                        doorOpenErrorCache[it.id] = time to time
+                                                        cabinetDoorDao.updateCabinetDoor(
+                                                            cabinetDoor.copy(
+                                                                status = CabinetDoor.Status.Error,
+                                                            )
+                                                        )
+                                                        doorOpenErrorCache[cabinetDoor.id] =
+                                                            time to time
                                                     }
                                                 }
                                             }
                                         }
                                     } else {
                                         Runnable {
+                                            if (doorOpenErrorCache[cabinetDoor.id] == null) return@Runnable
                                             coroutineScope.launch(Dispatchers.IO) {
-                                                val time = System.currentTimeMillis()
+                                                val currentTime = System.currentTimeMillis()
                                                 val lastTime = pair.second
                                                 if (lastTime == 0L) return@launch
+                                                if (handler.hasMessages(cabinetDoor.id)) {
+                                                    handler.removeMessages(cabinetDoor.id)
+                                                }
                                                 //距上次上报的时间大于十分钟后再上报
-                                                if (time - lastTime > 10 * 60 * 1000L) {
+                                                if (currentTime - lastTime > Config.ErrorReportDelay) {
                                                     apiRepository.reportDoorOpenAlarm(
-                                                        it.id,
+                                                        cabinetDoor.id,
                                                         sdf.format(pair.first),
-                                                        sdf.format(time)
-                                                    )
-                                                    doorOpenErrorCache[it.id] = pair.first to time
+                                                        sdf.format(currentTime)
+                                                    )?.status?.let { status ->
+                                                        handler.removeMessages(cabinetDoor.id)
+                                                        if (status == 200) {
+                                                            cabinetDoorDao.updateCabinetDoor(
+                                                                cabinetDoor.copy(
+                                                                    status = CabinetDoor.Status.Error,
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                    doorOpenErrorCache[cabinetDoor.id] =
+                                                        pair.first to currentTime
                                                 }
                                             }
                                         }
                                     }
-                                    handler.sendMessageDelayed(
-                                        Message.obtain(handler, callback)
-                                            .apply {
-                                                doorOpenErrorCache[it.id] = 0L to 0L
-                                                what = it.id
-                                            }, 60 * 1000L
-                                    )
-
+                                    if (!handler.hasMessages(cabinetDoor.id)) {
+                                        handler.sendMessageDelayed(
+                                            Message.obtain(handler, callback)
+                                                .apply {
+                                                    what = cabinetDoor.id
+                                                }, 1000L
+                                        )
+                                    }
                                 }
                                 else -> {
                                     //门没有关,设备也不在线
                                 }
                             }
                             if (!doorState || !probeState) {
-                                cabinetDoorDao.updateCabinetDoor(
-                                    it.copy(
-                                        status = CabinetDoor.Status.Error
-                                    )
-                                )
                                 continue
                             }
                         }
-//                        probes.add(
-//                            CabinetDataJson.Probe(
-//                                doorNO = it.id,
-//                                probeCode = it.probeCode,
-//                                availableTime = it.availableTime?.toInt(),
-//                                power = it.devicePower
-//                            )
-//                        )
-                        when (it.status) {
+                        when (cabinetDoor.status) {
                             CabinetDoor.Status.Disabled,
                             CabinetDoor.Status.Booked,
                             CabinetDoor.Status.Empty,
@@ -213,23 +276,23 @@ class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
                             CabinetDoor.Status.Idle -> {
                             }
                             CabinetDoor.Status.Charging -> {
-
-                                val remainingChargingTime = it.remainingChargingTime
-                                    ?: (totalChargingTime * (1f - it.devicePower / 100f)).roundToLong()
+                                val remainingChargingTime =
+                                    cabinetDoor.remainingChargingTime
+                                        ?: (totalChargingTime * (1f - cabinetDoor.devicePower / 100f)).roundToLong()
                                 if (remainingChargingTime > 0) {
                                     val time =
                                         (remainingChargingTime - DelayTime).coerceAtLeast(0)
-                                    val percent = (1f - (time / totalChargingTime.toFloat()))
-                                    val new = it.copy(
+                                    val percent =
+                                        (1f - (time / totalChargingTime.toFloat())).coerceIn(0f..1f)
+                                    val new = cabinetDoor.copy(
                                         remainingChargingTime = time,
                                         devicePower = (100 * percent).roundToInt(),
-                                        status = if (time > 0) it.status else CabinetDoor.Status.Idle,
-                                        availableTime = 4f * percent
+                                        availableTime = (totalChargingTime / Config.Minute.toFloat()) * (1f - percent)
                                     )
                                     cabinetDoorDao.updateCabinetDoor(new)
                                 } else {
-                                    cabinetDoorDao.updateCabinetDoor(it.copy(status = CabinetDoor.Status.Idle))
-                                    serialPortDataRepository.stopCharging(it.id)
+//                                    cabinetDoorDao.updateCabinetDoor(cabinetDoor.copy(status = CabinetDoor.Status.Idle))
+                                    serialPortDataRepository.stopCharging(cabinetDoor.id)
                                 }
                             }
                         }
@@ -239,7 +302,7 @@ class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
                             CabinetDataJson.Probe(
                                 doorNO = it.id,
                                 probeCode = it.probeCode,
-                                availableTime = it.availableTime?.toInt(),
+                                availableTime = it.availableTime?.toInt()?.toString() ?: "0",
                                 power = it.devicePower
                             )
                         }
@@ -263,6 +326,25 @@ class DoorDataBaseRepository(private val cabinetDoorDao: CabinetDoorDao) {
                     }
                 }
                 delay(DelayTime)
+            }
+        }
+    }
+
+    private suspend fun clearDoorOpenAlarm(
+        apiRepository: CabinetApiRepository,
+        cabinetDoor: CabinetDoor,
+        totalChargingTime: Long
+    ) {
+        apiRepository.clearDoorOpenAlarm(cabinetDoor.id)?.status?.let { status ->
+            if (status == 200) {
+                cabinetDoorDao.updateCabinetDoor(
+                    cabinetDoor.copy(
+                        status = if (cabinetDoor.probeCode != null) CabinetDoor.Status.Charging else CabinetDoor.Status.Empty,
+                        devicePower = 0,
+                        remainingChargingTime = null,
+                        availableTime = totalChargingTime / Config.Minute.toFloat()
+                    )
+                )
             }
         }
     }

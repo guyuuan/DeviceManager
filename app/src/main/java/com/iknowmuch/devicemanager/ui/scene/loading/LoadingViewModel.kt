@@ -42,7 +42,7 @@ class LoadingViewModel @Inject constructor(
     val mqttState = mqttManager.getMqttStatus()
         .map { it[preferenceManager.deviceID] ?: MQTTStatus.CONNECTING }.stateIn(
             viewModelScope,
-            SharingStarted.Lazily, MQTTStatus.CONNECTING
+            SharingStarted.Eagerly, MQTTStatus.CONNECTING
         )
 
     init {

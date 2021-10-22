@@ -2,7 +2,6 @@ package com.iknowmuch.devicemanager.repository
 
 import android.annotation.SuppressLint
 import android.util.Log
-import androidx.annotation.IntRange
 import com.blankj.utilcode.util.AppUtils
 import com.iknowmuch.devicemanager.bean.CabinetDataJson
 import com.iknowmuch.devicemanager.bean.CabinetDoor
@@ -43,7 +42,11 @@ class CabinetApiRepository(
         doorDataBaseRepository: DoorDataBaseRepository,
         deviceRepository: DeviceRepository
     ) {
-        getHomeData()?.data?.let {
+        val homeData = getHomeData()
+        if (homeData == null || homeData.data?.data.isNullOrEmpty()) {
+            deviceRepository.updateDeviceInfo()
+        }
+        homeData?.data?.let {
             val list = it.data
             list.forEachIndexed { i, e ->
                 if (i == 0) deviceRepository.updateDeviceInfo(
@@ -56,15 +59,27 @@ class CabinetApiRepository(
                         doorDataBaseRepository.updateCabinetDoorById(data.cabinetDoorNo) { door ->
                             door.copy(
                                 devicePower = data.power ?: 0,
-                                availableTime = data.availableTime?.toFloat() ?: 0f,
+                                availableTime = try {
+                                    data.availableTime?.split("小时")?.firstOrNull()?.toFloat()
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "updateLocaleData: ", e)
+                                    null
+                                } ?: 0f,
+                                probeName = data.probeName,
                                 probeCode = data.probeCode,
-                                status = if (e.cabinetDoorState == 0) when (data.probeState) {
-                                    0 -> CabinetDoor.Status.Idle
-                                    1 -> CabinetDoor.Status.Empty
-                                    2 -> CabinetDoor.Status.Booked
-                                    3 -> CabinetDoor.Status.Charging
-                                    4 -> CabinetDoor.Status.Fault
-                                    else -> CabinetDoor.Status.Error
+                                status = if (e.cabinetDoorState == 0) {
+                                    if (e.closeState == 0) {
+                                        CabinetDoor.Status.Error
+                                    } else {
+                                        when (data.probeState) {
+                                            0 -> CabinetDoor.Status.Idle
+                                            1 -> CabinetDoor.Status.Empty
+                                            2 -> CabinetDoor.Status.Booked
+                                            3 -> CabinetDoor.Status.Charging
+                                            4 -> CabinetDoor.Status.Fault
+                                            else -> CabinetDoor.Status.Error
+                                        }
+                                    }
                                 } else CabinetDoor.Status.Disabled
                             )
                         }
@@ -73,8 +88,10 @@ class CabinetApiRepository(
                             door.copy(
                                 devicePower = 0,
                                 availableTime = null,
+                                remainingChargingTime = null,
                                 probeCode = null,
-                                status = if (e.cabinetDoorState == 1) CabinetDoor.Status.Disabled else CabinetDoor.Status.Empty
+                                probeName = null,
+                                status = if (e.cabinetDoorState == 1) CabinetDoor.Status.Disabled else if (e.closeState ==0) CabinetDoor.Status.Error else CabinetDoor.Status.Empty
                             )
                         }
                     }
@@ -101,23 +118,15 @@ class CabinetApiRepository(
     suspend fun reportAbnormalCharging(
         probeCode: String,
         createTime: String,
-        //3充电正常,4异常
-        @IntRange(from = 3, to = 4) state: Int
-    ) =
-        try {
-            cabinetApi.reportProbeAbnormalCharging(
-                mapOf(
-                    "cabinetCode" to preferenceManager.deviceID,
-                    "probeCode" to probeCode,
-                    "deptId" to preferenceManager.deptID,
-                    "createTime" to createTime,
-                    "probeState" to state.toString()
-                )
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "reportAbnormalCharging: ", e)
-            null
-        }
+        lastTime: String,
+    ) = reportAlarm(
+        createTime = createTime,
+        lastTime = lastTime,
+        type = "0",
+        state = "9",
+        content = "设备$probeCode 充电异常",
+        probeCode = probeCode
+    )
 
     suspend fun reportDoorOpenAlarm(
         doorNo: Int, createTime: String, lastTime: String,
@@ -168,7 +177,7 @@ class CabinetApiRepository(
             null
         }
 
-    suspend fun retrunProbe(probeCode: String) = cabinetApi.returnProbe(
+    suspend fun returnProbe(probeCode: String) = cabinetApi.returnProbe(
         probeCode = probeCode,
         cabinetCode = preferenceManager.deviceID,
         deptId = preferenceManager.deptID

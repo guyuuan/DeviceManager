@@ -1,6 +1,7 @@
 package com.iknowmuch.devicemanager.repository
 
 import android.util.Log
+import com.iknowmuch.devicemanager.bean.ControllerResult
 import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.iknowmuch.devicemanager.serialport.Command
 import com.iknowmuch.devicemanager.serialport.SerialPortManager
@@ -11,7 +12,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
@@ -31,6 +34,8 @@ class SerialPortDataRepository(
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
+    private val _controlDoorResult = MutableStateFlow(ControllerResult())
+    val controlResult: StateFlow<ControllerResult> get() = _controlDoorResult
     private val stateMap = mapOf(
         Command.CMD.DoorState to Array(6) { ubyteArrayOf() },
         Command.CMD.ProbeState to Array(6) { ubyteArrayOf() },
@@ -130,15 +135,15 @@ class SerialPortDataRepository(
                 data = arrayOf(0x01.toUByte(), 0x01.toUByte(), id.toUByte())
             )
         )
-        val result = withTimeoutOrNull(2000) {
+        val result = withTimeoutOrNull(2000L) {
             while (true) {
+                delay(200L)
                 val arr = stateMap[Command.CMD.Open]?.first()
                 if (!arr.isNullOrEmpty()) {
                     return@withTimeoutOrNull (arr.first() == 1.toUByte()).also {
                         stateMap[Command.CMD.Open]?.set(0, ubyteArrayOf())
                     }
                 }
-                delay(100L)
             }
             false
         } ?: false
@@ -148,20 +153,28 @@ class SerialPortDataRepository(
 
     @ExperimentalCoroutinesApi
     suspend fun controlDoor(
-        id: Int,
+        id: Int, state: Int,
         onOpen: suspend (Boolean) -> Unit,
         //关门是否成功,探头设备是否在线
         onClose: suspend (Boolean, Boolean) -> Unit
     ) {
         //开门是否成功回调
         val open = openDoor(id)
+        _controlDoorResult.emit(
+            ControllerResult(
+                id,
+                status = state,
+                openState = open,
+                closeState = false
+            )
+        )
         onOpen(open)
         Log.d(TAG, "lendDevice open: $open")
         if (open) {
             val close = withTimeoutOrNull(70 * 1000L) {
                 //等待30s后再去判断柜门是否关上
-                repeat(20) {
-                    delay(3 * 1000L)
+                repeat(15) {
+                    delay(4 * 1000L)
                     val arr = stateMap[Command.CMD.DoorState]?.get(id - 1)
                     if (!arr.isNullOrEmpty()) {
                         val checkResult =
@@ -170,7 +183,7 @@ class SerialPortDataRepository(
                             return@withTimeoutOrNull (checkResult).also {
                                 stateMap[Command.CMD.DoorState]?.set(id - 1, ubyteArrayOf())
                             }
-                        } else if (it == 19 && !checkResult) {
+                        } else if (it == 14 && !checkResult) {
                             return@withTimeoutOrNull (checkResult).also {
                                 stateMap[Command.CMD.DoorState]?.set(id - 1, ubyteArrayOf())
                             }
@@ -180,6 +193,8 @@ class SerialPortDataRepository(
                 return@withTimeoutOrNull false
             } ?: false
             onClose(close, checkProbeState(id))
+            delay(10*1000L)
+            _controlDoorResult.emit(_controlDoorResult.value.copy(doorNo = 0, closeState = close))
             Log.d(TAG, "lendDevice close: $close")
         }
     }

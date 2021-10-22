@@ -19,6 +19,7 @@ import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,11 +27,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.blankj.utilcode.util.AppUtils
 import com.iknowmuch.devicemanager.R
+import com.iknowmuch.devicemanager.ui.LocalInsetsController
 import com.iknowmuch.devicemanager.ui.scene.loading.LoadingViewModel
 
 /**
@@ -105,6 +110,10 @@ fun AppConfigDialog(viewModel: LoadingViewModel, onDismissRequest: () -> Unit) {
                     Text(text = stringResource(R.string.text_confirm))
                 }
             }
+        }
+        val insetsController = LocalInsetsController.current
+        LaunchedEffect(key1 = Unit) {
+            insetsController.hide(WindowInsetsCompat.Type.systemBars())
         }
     }
 }

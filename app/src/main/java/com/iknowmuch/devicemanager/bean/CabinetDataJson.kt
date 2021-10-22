@@ -21,7 +21,7 @@ data class CabinetDataJson(
     @JsonClass(generateAdapter = true)
     data class Probe(
         @Json(name = "availableTime")
-        val availableTime: Int?,
+        val availableTime: String?,
         @Json(name = "doorNo")
         val doorNO: Int,
         @Json(name = "power")

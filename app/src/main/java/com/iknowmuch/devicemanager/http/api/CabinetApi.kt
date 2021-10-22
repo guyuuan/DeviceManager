@@ -59,7 +59,7 @@ interface CabinetApi {
 
     @POST("borrowAndReturn/scanReturn")
     suspend fun returnProbe(
-        @Query("probeCode") probeCode: String,
+        @Query("probeCode",encoded = true) probeCode: String,
         @Query("cabinetCode") cabinetCode: String,
         @Query("deptId") deptId: String
     ): ReturnProbeResult

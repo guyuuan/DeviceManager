@@ -25,33 +25,6 @@ class SerialPortManager {
     private var serialPort: SerialPort? = null
     private var inputStream: InputStream? = null
     private var outputStream: OutputStream? = null
-//    private var job: Job? = null
-//    fun read(path: String = "/dev/ttyS2") {
-//        try {
-//            serialPort = SerialPort(File(path), 115200, 0)
-//            job = coroutineScope.launch(Dispatchers.IO) {
-//                serialPort?.inputStream?.use {
-//                    while (true) {
-//                        try {
-//                            if (it.available() > 0) {
-//                                delay(500)
-//                                val byte = ByteArray(it.available())
-//                                val len = it.read(byte).coerceAtLeast(0)
-//                                val hex = byte.slice(0 until len).map { b -> b.toUByte() }
-//                                    .joinToHexString()
-//                                Log.d(TAG, "read: $hex")
-//                            }
-//                        } catch (e: Exception) {
-//                            Log.e(TAG, "while: ", e)
-//                        }
-//                    }
-//                }
-//            }
-//        } catch (e: Exception) {
-//            serialPort?.close()
-//            Log.e(TAG, "run: ", e)
-//        }
-//    }
 
     fun init(path: String) {
         try {

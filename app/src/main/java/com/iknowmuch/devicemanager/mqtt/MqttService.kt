@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.iknowmuch.devicemanager.Config
+import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.bean.MQMessage
 import com.iknowmuch.devicemanager.bean.Message
 import com.iknowmuch.devicemanager.http.api.DoorApi
@@ -104,12 +105,13 @@ class MqttService : LifecycleService() {
                 try {
                     if (!client.isConnected) {
                         mqttManager.connect(client)
+                    } else {
+                        mainRepository.heartBeat()
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "startMqtt: ", e)
                 }
-                mainRepository.heartBeat()
-                delay(60 * 1000L)
+                delay(Config.Minute)
             }
         }
     }
@@ -159,8 +161,9 @@ class MqttService : LifecycleService() {
     @ExperimentalCoroutinesApi
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun handlerMqttMessage(mqMessage: MQMessage) {
-        if (mqMessage.topic != topic || mqMessage.timestamp < preferenceManager.lastMessageTime) {
-            Log.d(TAG, "handlerMqttMessage: 消息时间${mqMessage.timestamp} 历史消息")
+        val currentTime = System.currentTimeMillis() - 5 * 1000L
+        if (mqMessage.topic != topic || mqMessage.timestamp < currentTime) {
+            Log.d(TAG, "handlerMqttMessage: 消息时间${mqMessage.timestamp} 历史消息 now $currentTime")
             return
         }
         try {
@@ -174,7 +177,7 @@ class MqttService : LifecycleService() {
                     when (json.data.state) {
                         //借
                         0 -> {
-                            serialPortDataRepository.controlDoor(json.data.doorNo!!, onOpen = {
+                            serialPortDataRepository.controlDoor(json.data.doorNo!!, 0,onOpen = {
                                 Log.d(TAG, "handlerMqttMessage: 开门 $it")
                                 doorApiRepository.openDoor(
                                     if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
@@ -189,11 +192,16 @@ class MqttService : LifecycleService() {
                                     json.data.doorNo,
                                     probeState = probe
                                 )
+                                if (door && !probe) {
+                                    mainRepository.updateCabinetDoorById(json.data.doorNo) {
+                                        it.copy(status = CabinetDoor.Status.Empty)
+                                    }
+                                }
                             }
                         }
                         //还
                         else -> {
-                            serialPortDataRepository.controlDoor(json.data.doorNo!!, onOpen = {
+                            serialPortDataRepository.controlDoor(json.data.doorNo!!,state = 1, onOpen = {
                                 Log.d(TAG, "handlerMqttMessage: 开门 $it")
                                 doorApiRepository.openDoor(
                                     if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
@@ -208,6 +216,15 @@ class MqttService : LifecycleService() {
                                     json.data.doorNo,
                                     probeState = probe
                                 )
+                                if (door && probe) {
+                                    mainRepository.updateCabinetDoorById(json.data.doorNo) {
+                                        it.copy(
+                                            status = CabinetDoor.Status.Charging,
+                                            devicePower = 0,
+                                            availableTime = 0f
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

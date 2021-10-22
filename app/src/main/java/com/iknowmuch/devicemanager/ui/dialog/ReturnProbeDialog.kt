@@ -2,8 +2,8 @@ package com.iknowmuch.devicemanager.ui.dialog
 
 import android.util.Log
 import android.widget.EditText
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,13 +22,16 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.widget.addTextChangedListener
+import com.iknowmuch.devicemanager.R
+import com.iknowmuch.devicemanager.mqtt.MQTTStatus
 import com.iknowmuch.devicemanager.ui.scene.home.HomeViewModel
+import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
 import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
 import kotlinx.coroutines.delay
 
@@ -40,29 +43,62 @@ import kotlinx.coroutines.delay
 
 private const val TAG = "ReturnProbeDialog"
 
+@ExperimentalUnsignedTypes
 @ExperimentalComposeUiApi
 @Composable
 fun ReturnProbeDialog(homeViewModel: HomeViewModel, onDismissRequest: () -> Unit) {
+    val result by homeViewModel.returnResult
+    if (result.first == 200) {
+        ReturnSuccess(onDismissRequest)
+    } else {
+        ReturnFailed(message = result.second, onDismissRequest)
+    }
+}
 
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(
-            dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false
-        )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colors.background, shape = MaterialTheme.shapes.large)
-        ) {
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+@ExperimentalComposeUiApi
+@Composable
+fun ReturnSuccess(onDismissRequest: () -> Unit) {
+    AutoCloseDialog(modifier = Modifier.fillMaxWidth(), onDismissRequest = onDismissRequest) {
+        AutoCloseColumn(
+            time = 10,
+            modifier = Modifier.fillMaxWidth(),
+            onCountdownEnd = { onDismissRequest() }) {
+            Column(
+                modifier = Modifier.padding(vertical = 96.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_success),
+                    contentDescription = "success"
+                )
+                Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = "请将设备编码对准扫码框",
-                    Modifier
-                        .padding(vertical = 110.dp),
+                    text = "归还成功",
+                    style = MaterialTheme.typography.h6,
+                    color = DefaultBlackTextColor
+                )
+            }
+        }
+    }
+}
+
+@ExperimentalComposeUiApi
+@Composable
+fun ReturnFailed(message: String, onDismissRequest: () -> Unit) {
+    AutoCloseDialog(modifier = Modifier.fillMaxWidth(), onDismissRequest = onDismissRequest) {
+        AutoCloseColumn(
+            showCountdown = false,
+            time = 10,
+            modifier = Modifier.fillMaxWidth(),
+            onCountdownEnd = { onDismissRequest() }) {
+            Column(Modifier.padding(horizontal = 36.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = message,
                     style = MaterialTheme.typography.h5,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    color = DefaultBlackTextColor,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 110.dp)
                 )
                 Spacer(
                     modifier = Modifier
@@ -71,22 +107,27 @@ fun ReturnProbeDialog(homeViewModel: HomeViewModel, onDismissRequest: () -> Unit
                         .background(color = Color(0xFFE7E7E7))
                 )
                 Text(
-                    text = "请将设备编码对准扫码框",
-                    Modifier
-                        .padding(vertical = 40.dp),
+                    text = "我知道了",
                     style = MaterialTheme.typography.h5,
+                    fontWeight = FontWeight.Medium,
                     color = ThemeBlue,
-                    fontWeight = FontWeight.Medium
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 40.dp)
                 )
             }
-
         }
     }
-
 }
 
+@ExperimentalComposeUiApi
+@ExperimentalUnsignedTypes
 @Composable
-fun ScanView(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
+fun ScanView(mqStatus: MQTTStatus, viewModel: HomeViewModel, modifier: Modifier = Modifier) {
+    var showOffline by remember {
+        mutableStateOf(false)
+    }
     var scanResult by remember {
         mutableStateOf("")
     }
@@ -108,11 +149,15 @@ fun ScanView(viewModel: HomeViewModel, modifier: Modifier = Modifier) {
             clearScanResult = false
         }
     }
+    if (showOffline) NetworkErrorDialog {
+        showOffline = false
+    }
     LaunchedEffect(key1 = scanResult) {
         delay(500)
         if (scanResult.isNotEmpty()) {
             Log.d(TAG, "ReturnProbeDialog: $scanResult")
-            viewModel.returnProbe(scanResult)
+            if (mqStatus != MQTTStatus.CONNECT_SUCCESS) showOffline = true
+            viewModel.returnProbe(scanResult.removePrefix("\n"))
             clearScanResult = true
         }
     }
