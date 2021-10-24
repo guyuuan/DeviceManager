@@ -35,3 +35,10 @@ class SerialPortPathPreference(mmkv: MMKV) :
     MMKVPreference<String>(mmkv, "serial_port_path", "/dev/ttyS2")
 
 class TokenPreference(mmkv: MMKV) : MMKVPreference<String>(mmkv, "user_token", "")
+
+/*
+* 0. createTime
+* 1. newVersion
+*
+* */
+class UpdateRecordPreference(mmkv: MMKV):MMKVPreference<Set<String>>(mmkv,"update_record", setOf())

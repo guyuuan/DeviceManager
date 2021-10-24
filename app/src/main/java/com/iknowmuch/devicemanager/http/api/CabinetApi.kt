@@ -63,4 +63,16 @@ interface CabinetApi {
         @Query("cabinetCode") cabinetCode: String,
         @Query("deptId") deptId: String
     ): ReturnProbeResult
+
+    /*
+    * {
+    *   "upGradeStatus":"1",升级状态：0失败，1成功
+    *   "appVersion":"Vsion2.0",当前版本
+    *   "upGradeTime":"2021-10-20 10:10:10",升级时间
+    *   "code":"yzq",智能柜编码
+    *   "deptId":"252"院区id
+    *  }
+    * */
+    @POST("")
+    suspend fun reportUpdateResult(@Body data: Map<String, String>) :DefaultResponseJson
 }

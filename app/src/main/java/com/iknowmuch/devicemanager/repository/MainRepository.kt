@@ -43,4 +43,7 @@ class MainRepository @ExperimentalUnsignedTypes constructor(
     suspend fun heartBeat() = apiRepository.heartBeat()
 
     suspend fun returnProbe(probeCode: String) = apiRepository.returnProbe(probeCode)
+
+    suspend fun updateRecordReport(state: Int, version: String, updateTime: String) =
+        apiRepository.reportUpdateResult(state, version, updateTime)
 }

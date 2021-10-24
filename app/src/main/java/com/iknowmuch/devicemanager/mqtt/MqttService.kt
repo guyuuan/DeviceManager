@@ -16,6 +16,7 @@ import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.iknowmuch.devicemanager.repository.DoorApiRepository
 import com.iknowmuch.devicemanager.repository.MainRepository
 import com.iknowmuch.devicemanager.repository.SerialPortDataRepository
+import com.iknowmuch.devicemanager.service.VersionUpdateService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,7 +57,6 @@ class MqttService : LifecycleService() {
         Config.getTopic(preferenceManager.deviceID)
     }
 
-    @ExperimentalCoroutinesApi
     override fun onCreate() {
         Log.d(TAG, "onCreate: ")
         super.onCreate()
@@ -145,7 +145,6 @@ class MqttService : LifecycleService() {
         }
     }
 
-    @ExperimentalCoroutinesApi
     private fun collectMqttMessage() {
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -158,7 +157,6 @@ class MqttService : LifecycleService() {
 
     private val jsonAdapter by lazy { moshi.adapter(Message::class.java) }
 
-    @ExperimentalCoroutinesApi
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun handlerMqttMessage(mqMessage: MQMessage) {
         val currentTime = System.currentTimeMillis() - 5 * 1000L
@@ -177,7 +175,7 @@ class MqttService : LifecycleService() {
                     when (json.data.state) {
                         //借
                         0 -> {
-                            serialPortDataRepository.controlDoor(json.data.doorNo!!, 0,onOpen = {
+                            serialPortDataRepository.controlDoor(json.data.doorNo!!, 0, onOpen = {
                                 Log.d(TAG, "handlerMqttMessage: 开门 $it")
                                 doorApiRepository.openDoor(
                                     if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
@@ -201,14 +199,17 @@ class MqttService : LifecycleService() {
                         }
                         //还
                         else -> {
-                            serialPortDataRepository.controlDoor(json.data.doorNo!!,state = 1, onOpen = {
-                                Log.d(TAG, "handlerMqttMessage: 开门 $it")
-                                doorApiRepository.openDoor(
-                                    if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
-                                    json.data.deptId.toString(),
-                                    json.data.doorNo
-                                )
-                            }) { door, probe ->
+                            serialPortDataRepository.controlDoor(
+                                json.data.doorNo!!,
+                                state = 1,
+                                onOpen = {
+                                    Log.d(TAG, "handlerMqttMessage: 开门 $it")
+                                    doorApiRepository.openDoor(
+                                        if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                        json.data.deptId.toString(),
+                                        json.data.doorNo
+                                    )
+                                }) { door, probe ->
                                 Log.d(TAG, "handlerMqttMessage: 关门 $door 在线$probe")
                                 doorApiRepository.closeDoor(
                                     if (door) DoorApi.StateSuccess else DoorApi.StateFailed,
@@ -230,6 +231,10 @@ class MqttService : LifecycleService() {
                     }
                 } else {
                     //版本更新
+                    startService(Intent(this@MqttService, VersionUpdateService::class.java).apply {
+                        putExtra(Config.NewVersionURL, json.data.url)
+                        putExtra(Config.NewVersion, json.data.newAppVersion)
+                    })
                 }
             }
         } catch (e: Exception) {

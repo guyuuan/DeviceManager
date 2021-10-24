@@ -91,7 +91,7 @@ class CabinetApiRepository(
                                 remainingChargingTime = null,
                                 probeCode = null,
                                 probeName = null,
-                                status = if (e.cabinetDoorState == 1) CabinetDoor.Status.Disabled else if (e.closeState ==0) CabinetDoor.Status.Error else CabinetDoor.Status.Empty
+                                status = if (e.cabinetDoorState == 1) CabinetDoor.Status.Disabled else if (e.closeState == 0) CabinetDoor.Status.Error else CabinetDoor.Status.Empty
                             )
                         }
                     }
@@ -182,4 +182,15 @@ class CabinetApiRepository(
         cabinetCode = preferenceManager.deviceID,
         deptId = preferenceManager.deptID
     )
+
+    suspend fun reportUpdateResult(state: Int, version: String, updateTime: String) =
+        cabinetApi.reportUpdateResult(
+            mapOf(
+                "upGradeStatus" to state.toString(),
+                "appVersion" to version,
+                "upGradeTime" to updateTime,
+                "code" to preferenceManager.deviceID,
+                "deptId" to preferenceManager.deptID
+            )
+        )
 }

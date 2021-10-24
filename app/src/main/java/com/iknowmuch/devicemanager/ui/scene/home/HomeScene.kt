@@ -51,7 +51,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -136,10 +135,10 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
         }
         ScanView(mqStatus, viewModel = viewModel, modifier = Modifier.align(Alignment.BottomEnd))
     }
-    if (controlResult.doorNo != 0) UsingDialog(data = controlResult) {
-
+    UsingDialog(data = controlResult) {
+        viewModel.clearControlDoorResult()
     }
-    LaunchedEffect(key1 = controlResult){
+    LaunchedEffect(key1 = controlResult) {
         Log.d(TAG, "controlResult: $controlResult")
     }
 }

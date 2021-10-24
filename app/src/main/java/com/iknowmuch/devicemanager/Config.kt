@@ -26,4 +26,6 @@ object Config {
     fun getTopic(id: String) = "$MQTT_TOPIC$id"
 
     const val ErrorReportDelay = 60* 10 * 1000L
+    const val NewVersionURL = "new_version_url"
+    const val NewVersion = "new_version"
 }

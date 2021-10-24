@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.widget.addTextChangedListener
 import com.iknowmuch.devicemanager.R
@@ -91,31 +93,18 @@ fun ReturnFailed(message: String, onDismissRequest: () -> Unit) {
             time = 10,
             modifier = Modifier.fillMaxWidth(),
             onCountdownEnd = { onDismissRequest() }) {
-            Column(Modifier.padding(horizontal = 36.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.h5,
-                    fontWeight = FontWeight.Medium,
-                    color = DefaultBlackTextColor,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(vertical = 110.dp)
-                )
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(3.dp)
-                        .background(color = Color(0xFFE7E7E7))
-                )
-                Text(
-                    text = "我知道了",
-                    style = MaterialTheme.typography.h5,
-                    fontWeight = FontWeight.Medium,
-                    color = ThemeBlue,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 40.dp)
-                )
+            AutoCloseDialog(onDismissRequest = onDismissRequest) {
+                AutoCloseColumn(time = 5, modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f), onCountdownEnd = { onDismissRequest() }) {
+                    Image(painter = painterResource(id = R.drawable.ic_error), contentDescription = null)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = message,
+                        fontSize = 36.sp,
+                        color = DefaultBlackTextColor
+                    )
+                }
             }
         }
     }

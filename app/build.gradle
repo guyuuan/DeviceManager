@@ -136,7 +136,7 @@ dependencies {
     implementation 'com.blankj:utilcode:1.30.6'
 
     //PermissionX
-    implementation 'com.permissionx.guolindev:permissionx:1.4.0'
+    implementation 'com.guolindev.permissionx:permissionx:1.6.1'
 
     //Moshi
     implementation "com.squareup.moshi:moshi:$moshi_version"

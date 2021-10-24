@@ -127,15 +127,15 @@ class SerialPortDataRepository(
         }
     }
 
-    @ExperimentalCoroutinesApi
-    suspend fun openDoor(id: Int): Boolean {
+
+    private suspend fun openDoor(id: Int): Boolean {
         write(
             Command(
                 cmd = Command.CMD.Open.ubyte,
                 data = arrayOf(0x01.toUByte(), 0x01.toUByte(), id.toUByte())
             )
         )
-        val result = withTimeoutOrNull(2000L) {
+        val result:Boolean = withTimeoutOrNull(2000L) {
             while (true) {
                 delay(200L)
                 val arr = stateMap[Command.CMD.Open]?.first()
@@ -151,7 +151,6 @@ class SerialPortDataRepository(
         return result
     }
 
-    @ExperimentalCoroutinesApi
     suspend fun controlDoor(
         id: Int, state: Int,
         onOpen: suspend (Boolean) -> Unit,
@@ -193,11 +192,12 @@ class SerialPortDataRepository(
                 return@withTimeoutOrNull false
             } ?: false
             onClose(close, checkProbeState(id))
-            delay(10*1000L)
-            _controlDoorResult.emit(_controlDoorResult.value.copy(doorNo = 0, closeState = close))
+            _controlDoorResult.emit(_controlDoorResult.value.copy(closeState = close))
             Log.d(TAG, "lendDevice close: $close")
         }
     }
+
+    suspend fun clearControlDoorResult() = _controlDoorResult.emit(ControllerResult())
 
     suspend fun stopCharging(id: Int) = write(
         cmd = Command(

@@ -41,7 +41,13 @@ import com.tencent.mmkv.MMKV
 import dagger.hilt.android.AndroidEntryPoint
 
 private const val TAG = "MainActivity"
-
+@ExperimentalCoilApi
+@ExperimentalUnsignedTypes
+@ExperimentalComposeUiApi
+@ExperimentalAnimationApi
+@ExperimentalPagerApi
+@ExperimentalMaterialApi
+@ExperimentalFoundationApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private val windowInsetsController by lazy {
@@ -51,20 +57,15 @@ class MainActivity : AppCompatActivity() {
     private var touchCount by mutableStateOf(0)
 
 
-    @ExperimentalCoilApi
-    @ExperimentalUnsignedTypes
-    @ExperimentalComposeUiApi
-    @ExperimentalAnimationApi
-    @ExperimentalPagerApi
-    @ExperimentalMaterialApi
-    @ExperimentalFoundationApi
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         PermissionX.init(this).permissions(
-            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA
+            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA,
+            Manifest.permission.REQUEST_INSTALL_PACKAGES
         ).request { allGranted, _, _ ->
             if (allGranted) {
                 setContent {

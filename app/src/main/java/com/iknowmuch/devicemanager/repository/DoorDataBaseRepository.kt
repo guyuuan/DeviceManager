@@ -28,7 +28,7 @@ import kotlin.math.roundToLong
 const val DelayTime = 1000L * 10
 private const val TAG = "DoorDataBaseRepository"
 
-class DoorDataBaseRepository(
+class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
     private val cabinetDoorDao: CabinetDoorDao,
     serialPortDataRepository: SerialPortDataRepository
 ) {
@@ -67,7 +67,8 @@ class DoorDataBaseRepository(
         }
     }
 
-    suspend fun updateCabinetDoor(new: CabinetDoor) = cabinetDoorDao.updateCabinetDoor(new)
+//    suspend fun updateCabinetDoor(new: CabinetDoor) = cabinetDoorDao.updateCabinetDoor(new)
+
     private var oldData: CabinetDataJson? = null
 
     //值为充电异常的设备id

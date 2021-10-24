@@ -34,7 +34,7 @@
     <string name="text_borrow">借</string>
     <string name="text_auto_close_time">%dS后自动关闭</string>
     <string name="text_borrowing">借用中</string>
-    <string name="text_borrow_tip">%d号门已开门，请尽快拿走，并关闭柜门</string>
+    <string name="text_borrow_tip">请尽快拿走</string>
     <string name="text_returning">归还中</string>
-    <string name="text_return_tip">%d号门已开门，请确认已充电后，再关闭柜门</string>
+    <string name="text_return_tip">确认已充电</string>
 </resources>

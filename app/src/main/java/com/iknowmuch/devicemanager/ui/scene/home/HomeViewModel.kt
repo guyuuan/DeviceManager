@@ -5,6 +5,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.blankj.utilcode.util.AppUtils
 import com.iknowmuch.devicemanager.Config
 import com.iknowmuch.devicemanager.bean.Device
 import com.iknowmuch.devicemanager.preference.PreferenceManager
@@ -32,7 +33,7 @@ private const val TAG = "HomeViewModel"
 class HomeViewModel @Inject constructor(
     preferenceManager: PreferenceManager,
     private val deviceRepository: DeviceRepository,
-    serialPortDataRepository: SerialPortDataRepository,
+    private val serialPortDataRepository: SerialPortDataRepository,
     private val repository: MainRepository
 ) : ViewModel() {
 
@@ -51,7 +52,21 @@ class HomeViewModel @Inject constructor(
     )
 
     init {
-//        0可借用，1使用中，2被预定，3充电中，4有故障，5遗失，6异常，7归还异常
+        //不为空说明是更新过后重新启动的
+        if (preferenceManager.updateRecord.isNotEmpty()) {
+            viewModelScope.launch(Dispatchers.IO) {
+                val record = preferenceManager.updateRecord.toList()
+                val currentVersion = AppUtils.getAppVersionName()
+                val recordVersion = record[1]
+                val updateTime = record[0]
+                val state = if (currentVersion == recordVersion) 1 else 0
+                repository.updateRecordReport(
+                    state = state, version = currentVersion, updateTime = updateTime
+                )
+            }
+        }
+
+        //0可借用，1使用中，2被预定，3充电中，4有故障，5遗失，6异常，7归还异常
         viewModelScope.launch(Dispatchers.IO) {
             while (true) {
                 try {
@@ -117,5 +132,11 @@ class HomeViewModel @Inject constructor(
 
     fun clearReturnDialog() {
         _returnResult.value = -1 to ""
+    }
+
+    fun clearControlDoorResult() {
+        viewModelScope.launch {
+            serialPortDataRepository.clearControlDoorResult()
+        }
     }
 }

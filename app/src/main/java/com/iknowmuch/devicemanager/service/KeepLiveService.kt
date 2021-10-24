@@ -6,6 +6,12 @@ import android.app.job.JobParameters
 import android.app.job.JobService
 import android.content.Intent
 import android.util.Log
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.ui.ExperimentalComposeUiApi
+import coil.annotation.ExperimentalCoilApi
+import com.google.accompanist.pager.ExperimentalPagerApi
 import com.iknowmuch.devicemanager.MainActivity
 import com.iknowmuch.devicemanager.preference.KeepLivePreference
 import com.tencent.mmkv.MMKV
@@ -16,7 +22,13 @@ import com.tencent.mmkv.MMKV
  *@description:
  **/
 private const val TAG = "KeepLiveService"
-
+@ExperimentalCoilApi
+@ExperimentalUnsignedTypes
+@ExperimentalComposeUiApi
+@ExperimentalAnimationApi
+@ExperimentalPagerApi
+@ExperimentalMaterialApi
+@ExperimentalFoundationApi
 class KeepLiveService : JobService() {
 
     private val keepLiveFlag by KeepLivePreference(MMKV.defaultMMKV())
