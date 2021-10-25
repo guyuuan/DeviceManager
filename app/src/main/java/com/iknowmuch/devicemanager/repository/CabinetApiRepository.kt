@@ -51,7 +51,8 @@ class CabinetApiRepository(
             list.forEachIndexed { i, e ->
                 if (i == 0) deviceRepository.updateDeviceInfo(
                     name = e.cabinetName,
-                    location = e.cabinetAddress
+                    location = e.cabinetAddress,
+                    enabled = e.cabinetEnable == "0"
                 )
                 Log4a.d(TAG, "message: ${e.message}")
                 e.message.let { data ->

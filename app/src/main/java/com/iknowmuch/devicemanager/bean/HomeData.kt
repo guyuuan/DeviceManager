@@ -39,7 +39,10 @@ data class HomeData(
         @Json(name = "CabinetName")
         val cabinetName: String,
         @Json(name = "message")
-        val message: Message?
+        val message: Message?,
+        //0启用，1禁用
+        @Json(name = "cabinetEnable")
+        val cabinetEnable :String
     ) {
         @JsonClass(generateAdapter = true)
         data class Message(

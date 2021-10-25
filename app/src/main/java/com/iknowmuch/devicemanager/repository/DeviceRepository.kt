@@ -20,13 +20,17 @@ class DeviceRepository(
         deviceDao.insertDeviceInfo(Device(primaryKey = 1))
     }
 
-    suspend fun updateDeviceInfo(name: String = "智能柜", location: String = "未知") =
+    suspend fun updateDeviceInfo(
+        name: String = "智能柜",
+        enabled: Boolean = false,
+        location: String = "未知"
+    ) =
         deviceDao.updateDeviceInfo(
             Device(
                 primaryKey = 1,
                 name = name,
                 id = preferenceManager.deviceID,
-                location = location
+                location = location,enabled = enabled
             )
         )
 }

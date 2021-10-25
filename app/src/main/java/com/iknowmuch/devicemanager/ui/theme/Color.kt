@@ -17,6 +17,10 @@ val GreenBrush = Brush.linearGradient(
     listOf(Color(0xFF24BD84), Color(0xFF4CC777)),
     start = Offset.Zero, end = Offset.Infinite
 )
+val UnabledBrush = Brush.linearGradient(
+    listOf(Color(0xFFE9E9E9), Color(0xFFE3E3E3)),
+    start = Offset.Zero, end = Offset.Infinite
+)
 
 val BlueBrush = Brush.linearGradient(
     listOf(Color(0xFF649AFD), Color(0xFF82A0FF)),

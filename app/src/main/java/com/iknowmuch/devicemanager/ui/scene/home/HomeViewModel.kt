@@ -140,7 +140,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun updateLocalData(){
+    fun updateLocalData() {
         viewModelScope.launch(Dispatchers.IO) {
             while (true) {
                 try {

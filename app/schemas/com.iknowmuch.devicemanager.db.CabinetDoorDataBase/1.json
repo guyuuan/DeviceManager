@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "6f5b48889c7cf28cca2de993ce3589a4",
+    "identityHash": "5bbe7eeef65a61202a158cc321cd789e",
     "entities": [
       {
         "tableName": "cabinet_door",
@@ -78,7 +78,7 @@
       },
       {
         "tableName": "device",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`primaryKey` INTEGER NOT NULL, `id` TEXT NOT NULL, `name` TEXT NOT NULL, `location` TEXT NOT NULL, PRIMARY KEY(`primaryKey`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`primaryKey` INTEGER NOT NULL, `id` TEXT NOT NULL, `name` TEXT NOT NULL, `location` TEXT NOT NULL, `enabled` INTEGER NOT NULL, PRIMARY KEY(`primaryKey`))",
         "fields": [
           {
             "fieldPath": "primaryKey",
@@ -103,6 +103,12 @@
             "columnName": "location",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "enabled",
+            "columnName": "enabled",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -118,7 +124,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6f5b48889c7cf28cca2de993ce3589a4')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5bbe7eeef65a61202a158cc321cd789e')"
     ]
   }
 }

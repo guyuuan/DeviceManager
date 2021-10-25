@@ -71,6 +71,7 @@ import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
 import com.iknowmuch.devicemanager.ui.theme.ErrorRed
 import com.iknowmuch.devicemanager.ui.theme.GreenBrush
 import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
+import com.iknowmuch.devicemanager.ui.theme.UnabledBrush
 import com.iknowmuch.devicemanager.utils.drawColorShadow
 import me.pqpo.librarylog4a.Log4a
 
@@ -126,8 +127,8 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
             )
             BottomButton(
                 mqStatus,
-                viewModel = viewModel, navController,
-                Modifier
+                viewModel = viewModel,
+                modifier = Modifier
                     .padding(horizontal = 32.dp)
                     .padding(bottom = 125.dp / 2, top = 125.dp / 5)
                     .fillMaxWidth()
@@ -198,9 +199,9 @@ fun UsingInstructionItem(text: String, modifier: Modifier = Modifier) {
 fun BottomButton(
     mqStatus: MQTTStatus,
     viewModel: HomeViewModel,
-    navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val deivce by viewModel.device.collectAsState()
     var showQRCode by remember {
         mutableStateOf(false)
     }
@@ -212,7 +213,7 @@ fun BottomButton(
             modifier = Modifier
                 .width(494.dp)
                 .height(204.dp)
-                .clickable {
+                .clickable(deivce.enabled) {
                     if (mqStatus != MQTTStatus.CONNECT_SUCCESS) {
                         showOffline = true
                         return@clickable
@@ -220,7 +221,8 @@ fun BottomButton(
                     showQRCode = !showQRCode
                 }
                 .background(
-                    brush = GreenBrush, shape = MaterialTheme.shapes.medium
+                    brush = if (deivce.enabled) GreenBrush else UnabledBrush,
+                    shape = MaterialTheme.shapes.medium
                 ),
             contentAlignment = Alignment.Center
         ) {

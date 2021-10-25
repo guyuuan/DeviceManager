@@ -14,5 +14,6 @@ data class Device(
     val primaryKey: Int = 1,
     val id: String = "",
     val name: String = "智能柜",
-    val location: String = "未知"
+    val location: String = "未知",
+    val enabled: Boolean = false
 )
