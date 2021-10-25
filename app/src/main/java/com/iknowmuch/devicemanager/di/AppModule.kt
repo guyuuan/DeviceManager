@@ -1,7 +1,6 @@
 package com.iknowmuch.devicemanager.di
 
 import android.content.Context
-import android.util.Log
 import androidx.room.Room
 import com.iknowmuch.devicemanager.BuildConfig
 import com.iknowmuch.devicemanager.Config
@@ -20,6 +19,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import me.pqpo.librarylog4a.Log4a
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -50,7 +50,7 @@ object AppModule {
             }
             if (BuildConfig.DEBUG) {
                 addInterceptor(HttpLoggingInterceptor {
-                    Log.d("Retrofit", "log: $it")
+                    Log4a.d("Retrofit", "Log4a: $it")
                 }.also { it.level = HttpLoggingInterceptor.Level.BODY })
             }
         }.build()

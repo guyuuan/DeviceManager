@@ -1,13 +1,13 @@
 package com.iknowmuch.devicemanager.repository
 
 import android.annotation.SuppressLint
-import android.util.Log
 import com.blankj.utilcode.util.AppUtils
 import com.iknowmuch.devicemanager.bean.CabinetDataJson
 import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.bean.HomeDataJson
 import com.iknowmuch.devicemanager.http.api.CabinetApi
 import com.iknowmuch.devicemanager.preference.PreferenceManager
+import me.pqpo.librarylog4a.Log4a
 import java.text.SimpleDateFormat
 
 /**
@@ -32,7 +32,7 @@ class CabinetApiRepository(
                 null
             }
         } catch (e: Exception) {
-            Log.e(TAG, "getHomeData: ", e)
+            Log4a.e(TAG, "getHomeData: ", e)
             null
         }
     }
@@ -53,7 +53,7 @@ class CabinetApiRepository(
                     name = e.cabinetName,
                     location = e.cabinetAddress
                 )
-                Log.d(TAG, "message: ${e.message}")
+                Log4a.d(TAG, "message: ${e.message}")
                 e.message.let { data ->
                     if (data != null) {
                         doorDataBaseRepository.updateCabinetDoorById(data.cabinetDoorNo) { door ->
@@ -62,7 +62,7 @@ class CabinetApiRepository(
                                 availableTime = try {
                                     data.availableTime?.split("小时")?.firstOrNull()?.toFloat()
                                 } catch (e: Exception) {
-                                    Log.e(TAG, "updateLocaleData: ", e)
+                                    Log4a.e(TAG, "updateLocaleData: ", e)
                                     null
                                 } ?: 0f,
                                 probeName = data.probeName,
@@ -112,7 +112,7 @@ class CabinetApiRepository(
             )
         )
     } catch (e: Exception) {
-        Log.e(TAG, "heartBeat: ", e)
+        Log4a.e(TAG, "heartBeat: ", e)
     }
 
     suspend fun reportAbnormalCharging(
@@ -173,7 +173,7 @@ class CabinetApiRepository(
                 )
             )
         } catch (e: Exception) {
-            Log.e(TAG, "reportAlarm: ", e)
+            Log4a.e(TAG, "reportAlarm: ", e)
             null
         }
 

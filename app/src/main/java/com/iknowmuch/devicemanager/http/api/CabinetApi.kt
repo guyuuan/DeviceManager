@@ -73,6 +73,6 @@ interface CabinetApi {
     *   "deptId":"252"院区id
     *  }
     * */
-    @POST("")
+    @POST("/cgi-bin/appVersion")
     suspend fun reportUpdateResult(@Body data: Map<String, String>) :DefaultResponseJson
 }

@@ -1,6 +1,5 @@
 package com.iknowmuch.devicemanager.ui.scene.home
 
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -18,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import me.pqpo.librarylog4a.Log4a
 import javax.inject.Inject
 import kotlin.math.roundToLong
 
@@ -72,7 +72,7 @@ class HomeViewModel @Inject constructor(
                 try {
                     repository.updateLocaleData(deviceRepository)
                 } catch (e: Exception) {
-                    Log.e(TAG, "updateHomeData: ", e)
+                    Log4a.e(TAG, "updateHomeData: ", e)
                 }
                 delay(10 * 1000L)
             }
@@ -119,24 +119,37 @@ class HomeViewModel @Inject constructor(
 
                 } else {
                     //归还失败
-                    Log.d(TAG, "returnProbe: ${response.realMessage}")
+                    Log4a.d(TAG, "returnProbe: ${response.realMessage}")
                 }
                 _returnResult.value =
                     (response.status2 ?: response.status1
                     ?: response.status) to response.realMessage
             } catch (e: Exception) {
-                Log.e(TAG, "returnProbe: ", e)
+                Log4a.e(TAG, "returnProbe: ", e)
             }
         }
     }
 
-    fun clearReturnDialog() {
+    fun clearReturnDiaLog4a() {
         _returnResult.value = -1 to ""
     }
 
     fun clearControlDoorResult() {
         viewModelScope.launch {
             serialPortDataRepository.clearControlDoorResult()
+        }
+    }
+
+    fun updateLocalData(){
+        viewModelScope.launch(Dispatchers.IO) {
+            while (true) {
+                try {
+                    repository.updateLocaleData(deviceRepository)
+                } catch (e: Exception) {
+                    Log4a.e(TAG, "updateHomeData: ", e)
+                }
+                delay(10 * 1000L)
+            }
         }
     }
 }

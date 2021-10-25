@@ -1,6 +1,5 @@
 package com.iknowmuch.devicemanager.repository
 
-import android.util.Log
 import com.iknowmuch.devicemanager.bean.ControllerResult
 import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.iknowmuch.devicemanager.serialport.Command
@@ -9,7 +8,6 @@ import com.iknowmuch.devicemanager.serialport.joinToHexString
 import com.iknowmuch.devicemanager.serialport.toCommand
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +17,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import me.pqpo.librarylog4a.Log4a
 
 /**
  *@author: Chen
@@ -54,7 +53,7 @@ class SerialPortDataRepository(
         serialPortManager.init(preferenceManager.serialPortPath)
         coroutineScope.launch(Dispatchers.IO) {
             serialPortData.collect {
-                Log.d(TAG, "get serial port message: ${it.joinToHexString()}")
+                Log4a.d(TAG, "get serial port message: ${it.joinToHexString()}")
                 if (it.size > 7) {
                     try {
                         val cmd = it.toCommand()
@@ -68,7 +67,7 @@ class SerialPortDataRepository(
                                 )
                             }
                             Command.CMD.Open -> {
-                                Log.d(TAG, "collect open data: ")
+                                Log4a.d(TAG, "collect open data: ")
                                 stateMap[Command.CMD.Open]?.set(0, cmd.data.toUByteArray())
                             }
                             Command.CMD.OpenAll -> {
@@ -86,7 +85,7 @@ class SerialPortDataRepository(
                             }
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "collect message: ", e)
+                        Log4a.e(TAG, "collect message: ", e)
                     }
                 }
             }
@@ -135,9 +134,9 @@ class SerialPortDataRepository(
                 data = arrayOf(0x01.toUByte(), 0x01.toUByte(), id.toUByte())
             )
         )
-        val result:Boolean = withTimeoutOrNull(2000L) {
+        val result: Boolean = withTimeoutOrNull(4000L) {
             while (true) {
-                delay(200L)
+                delay(500L)
                 val arr = stateMap[Command.CMD.Open]?.first()
                 if (!arr.isNullOrEmpty()) {
                     return@withTimeoutOrNull (arr.first() == 1.toUByte()).also {
@@ -153,7 +152,7 @@ class SerialPortDataRepository(
 
     suspend fun controlDoor(
         id: Int, state: Int,
-        onOpen: suspend (Boolean) -> Unit,
+        onOpen: suspend (Boolean, Boolean) -> Unit,
         //关门是否成功,探头设备是否在线
         onClose: suspend (Boolean, Boolean) -> Unit
     ) {
@@ -164,11 +163,10 @@ class SerialPortDataRepository(
                 id,
                 status = state,
                 openState = open,
-                closeState = false
             )
         )
-        onOpen(open)
-        Log.d(TAG, "lendDevice open: $open")
+        clearDoorState(id)
+        onOpen(open, checkProbeState(id))
         if (open) {
             val close = withTimeoutOrNull(70 * 1000L) {
                 //等待30s后再去判断柜门是否关上
@@ -191,12 +189,19 @@ class SerialPortDataRepository(
                 }
                 return@withTimeoutOrNull false
             } ?: false
-            onClose(close, checkProbeState(id))
-            _controlDoorResult.emit(_controlDoorResult.value.copy(closeState = close))
-            Log.d(TAG, "lendDevice close: $close")
+            val probe = checkProbeState(id)
+            onClose(close, probe)
+            _controlDoorResult.emit(
+                _controlDoorResult.value.copy(
+                    closeState = close,
+                    probeState = probe
+                )
+            )
         }
     }
-
+    private  fun clearDoorState(id: Int){
+        stateMap[Command.CMD.DoorState]?.set(id-1, ubyteArrayOf())
+    }
     suspend fun clearControlDoorResult() = _controlDoorResult.emit(ControllerResult())
 
     suspend fun stopCharging(id: Int) = write(

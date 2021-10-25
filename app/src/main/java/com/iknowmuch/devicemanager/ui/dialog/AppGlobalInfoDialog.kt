@@ -18,7 +18,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,12 +66,18 @@ fun AppGlobalInfoDialog(
     var chargingTime by remember {
         mutableStateOf(viewModel.chargingTime.toString())
     }
-    Dialog(onDismissRequest = onDismissRequest
-    ,properties = DialogProperties(usePlatformDefaultWidth = false)
+    var serialPortPath by remember {
+        mutableStateOf(viewModel.serialPortPath)
+    }
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         val insetsController = LocalInsetsController.current
-        LaunchedEffect(key1 = Unit) {
-            insetsController.hide(WindowInsetsCompat.Type.systemBars())
+        DisposableEffect(key1 = Unit) {
+            onDispose {
+                insetsController.hide(WindowInsetsCompat.Type.systemBars())
+            }
         }
         Column(
             Modifier
@@ -179,6 +185,47 @@ fun AppGlobalInfoDialog(
                         } catch (e: Exception) {
                             Toast.makeText(cxt, "格式有误,只能输入数字", Toast.LENGTH_SHORT).show()
                         }
+                    }) {
+                        Text(text = stringResource(id = R.string.text_save))
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val style = MaterialTheme.typography.body1
+                Text(
+                    text = stringResource(id = R.string.text_serial_port_path),
+                    modifier = Modifier.weight(1f),
+                    style = style.copy(color = style.color.copy(alpha = 0.8f)),
+                    textAlign = TextAlign.End
+                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    BasicTextField(
+                        textStyle = MaterialTheme.typography.body2,
+                        value = serialPortPath, onValueChange = {
+                            serialPortPath = it
+                        }, modifier = Modifier
+                            .width(160.dp)
+                            .height(40.dp)
+                            .background(
+                                MaterialTheme.colors.background,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .border(BorderStroke(1.dp, Color.LightGray))
+                            .padding(4.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(onClick = {
+                        viewModel.saveSerialPortPath(serialPortPath)
+                        Toast.makeText(cxt, "保存成功", Toast.LENGTH_SHORT).show()
+
                     }) {
                         Text(text = stringResource(id = R.string.text_save))
                     }

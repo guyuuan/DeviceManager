@@ -3,7 +3,6 @@ package com.iknowmuch.devicemanager.service
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.IBinder
-import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.iknowmuch.devicemanager.Config
@@ -12,6 +11,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.pqpo.librarylog4a.Log4a
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -81,7 +81,7 @@ class VersionUpdateService : LifecycleService() {
                 install(file)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "download apk: ", e)
+            Log4a.e(TAG, "download apk: ", e)
         } finally {
             try {
                 inputStream?.close()
@@ -134,10 +134,10 @@ class VersionUpdateService : LifecycleService() {
             printWriter.flush()
             printWriter.close()
             val value = process.waitFor()
-            Log.i(TAG, "静默安装返回值：$value")
+            Log4a.i(TAG, "静默安装返回值：$value")
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
-            Log.i(TAG, "安装apk出现异常")
+            Log4a.i(TAG, "安装apk出现异常")
         } finally {
             process?.destroy()
         }

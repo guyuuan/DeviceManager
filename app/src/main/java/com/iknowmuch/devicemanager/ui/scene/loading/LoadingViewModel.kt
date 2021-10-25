@@ -1,6 +1,5 @@
 package com.iknowmuch.devicemanager.ui.scene.loading
 
-import android.os.Environment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.DeviceUtils
@@ -36,6 +35,7 @@ class LoadingViewModel @Inject constructor(
     val mqttServer = preferenceManager.mqttServer
     val keepLive = preferenceManager.keepLive
     val chargingTime = preferenceManager.chargingTime
+    val serialPortPath = preferenceManager.serialPortPath
     private var _deviceID = MutableStateFlow(preferenceManager.deviceID)
     val deviceID: StateFlow<String>
         get() = _deviceID
@@ -66,5 +66,9 @@ class LoadingViewModel @Inject constructor(
 
     fun saveChargingTime(time: Float) {
         preferenceManager.chargingTime = time
+    }
+
+    fun saveSerialPortPath(path: String) {
+        preferenceManager.serialPortPath = path
     }
 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DeviceManager</string>
+    <string name="app_name">超声智能</string>
     <string name="text_device_info">设备信息</string>
     <string name="text_device_id">设备编码:</string>
     <string name="text_resolution">分辨率:</string>
@@ -14,6 +14,7 @@
     <string name="text_software_version">软件版本:</string>
     <string name="text_auto_jump_time">页面自动转跳间隔:</string>
     <string name="text_device_charging_time">设备充电时长:</string>
+    <string name="text_serial_port_path">串口地址:</string>
     <string name="text_enable_local_bind">开启本地绑定</string>
     <string name="text_close_app">关闭应用</string>
     <string name="text_save">保存</string>
@@ -37,4 +38,9 @@
     <string name="text_borrow_tip">请尽快拿走</string>
     <string name="text_returning">归还中</string>
     <string name="text_return_tip">确认已充电</string>
+    <string name="text_borrow_failed">借用失败</string>
+    <string name="text_return_failed">归还失败</string>
+    <string name="text_borrow_success">借用成功</string>
+    <string name="text_return_success">归还成功</string>
+    <string name="text_door_is_open">柜门未关</string>
 </resources>

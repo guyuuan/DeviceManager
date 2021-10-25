@@ -29,7 +29,7 @@ import com.iknowmuch.devicemanager.ui.scene.scan.ScanScene
 sealed class Scene(val id: String, @StringRes val label: Int? = null) {
     object Loading : Scene(id = "Loading")
     object Home : Scene(id = "home")
-    object More : Scene(id = "login")
+    object More : Scene(id = "Log4ain")
     object Scan : Scene(id = "scan")
 }
 

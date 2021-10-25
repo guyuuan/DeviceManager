@@ -1,6 +1,5 @@
 package com.iknowmuch.devicemanager.serialport
 
-import android.util.Log
 import java.util.*
 
 /**

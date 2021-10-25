@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.util.Log
 import com.iknowmuch.devicemanager.Config
 import com.iknowmuch.devicemanager.bean.CabinetDataJson
 import com.iknowmuch.devicemanager.bean.CabinetDoor
@@ -14,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.pqpo.librarylog4a.Log4a
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
@@ -60,10 +60,10 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
     suspend fun updateCabinetDoorById(id: Int, modifier: (CabinetDoor) -> CabinetDoor) {
         val old = getCabinetDoorById(id)
         if (old != null) {
-            Log.d(TAG, "updateCabinetDoorById: old $old")
+            Log4a.d(TAG, "updateCabinetDoorById: old $old")
             cabinetDoorDao.updateCabinetDoor(modifier(old))
         } else {
-            Log.d(TAG, "updateCabinetDoorById: $id is null")
+            Log4a.d(TAG, "updateCabinetDoorById: $id is null")
         }
     }
 
@@ -113,7 +113,7 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                                                 cabinetDoor.id
                                             )?.status == CabinetDoor.Status.Error
                                         ) {
-                                            Log.d("TAG", "清除门未关异常: ")
+                                            Log4a.d("TAG", "清除门未关异常: ")
                                             clearDoorOpenAlarm(
                                                 apiRepository,
                                                 cabinetDoor,
@@ -317,13 +317,13 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                             try {
                                 apiRepository.reportLocaleData(newData)
                             } catch (e: Exception) {
-                                Log.e(TAG, "reportLocaleData: ", e)
+                                Log4a.e(TAG, "reportLocaleData: ", e)
                             } finally {
                                 oldData = newData
                             }
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "loop: ", e)
+                        Log4a.e(TAG, "loop: ", e)
                     }
                 }
                 delay(DelayTime)

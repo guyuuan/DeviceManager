@@ -1,5 +1,6 @@
 package com.iknowmuch.devicemanager.preference
 
+import com.iknowmuch.devicemanager.BuildConfig
 import com.iknowmuch.devicemanager.Config
 import com.tencent.mmkv.MMKV
 
@@ -20,7 +21,7 @@ class HttpServerPreference(mmkv: MMKV) :
 class MqttServerPreference(mmkv: MMKV) :
     MMKVPreference<String>(mmkv, "mqtt_server", Config.DEFAULT_MQTT_SERVER)
 
-class KeepLivePreference(mmkv: MMKV) : MMKVPreference<Boolean>(mmkv, "keep_live", true)
+class KeepLivePreference(mmkv: MMKV) : MMKVPreference<Boolean>(mmkv, "keep_live", !BuildConfig.DEBUG)
 
 class AutoJumpTimePreference(mmkv: MMKV) :
     MMKVPreference<Int>(mmkv, "auto_jump_time", Config.DEFAULT_AUTO_JUMP_TIME)
@@ -32,7 +33,7 @@ class LastMessageTimePreference(mmkv: MMKV) :
     MMKVPreference<Long>(mmkv, "last_message_time", System.currentTimeMillis())
 
 class SerialPortPathPreference(mmkv: MMKV) :
-    MMKVPreference<String>(mmkv, "serial_port_path", "/dev/ttyS2")
+    MMKVPreference<String>(mmkv, "serial_port_path", "/dev/ttyS0")
 
 class TokenPreference(mmkv: MMKV) : MMKVPreference<String>(mmkv, "user_token", "")
 

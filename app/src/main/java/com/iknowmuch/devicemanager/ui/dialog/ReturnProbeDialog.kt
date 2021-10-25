@@ -1,9 +1,7 @@
 package com.iknowmuch.devicemanager.ui.dialog
 
-import android.util.Log
 import android.widget.EditText
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -21,11 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -34,8 +29,8 @@ import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.mqtt.MQTTStatus
 import com.iknowmuch.devicemanager.ui.scene.home.HomeViewModel
 import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
-import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
 import kotlinx.coroutines.delay
+import me.pqpo.librarylog4a.Log4a
 
 /**
  *@author: Chen
@@ -43,7 +38,7 @@ import kotlinx.coroutines.delay
  *@description:
  **/
 
-private const val TAG = "ReturnProbeDialog"
+private const val TAG = "ReturnProbeDiaLog4a"
 
 @ExperimentalUnsignedTypes
 @ExperimentalComposeUiApi
@@ -97,7 +92,10 @@ fun ReturnFailed(message: String, onDismissRequest: () -> Unit) {
                 AutoCloseColumn(time = 5, modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f), onCountdownEnd = { onDismissRequest() }) {
-                    Image(painter = painterResource(id = R.drawable.ic_error), contentDescription = null)
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_error),
+                        contentDescription = null
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = message,
@@ -144,7 +142,7 @@ fun ScanView(mqStatus: MQTTStatus, viewModel: HomeViewModel, modifier: Modifier 
     LaunchedEffect(key1 = scanResult) {
         delay(500)
         if (scanResult.isNotEmpty()) {
-            Log.d(TAG, "ReturnProbeDialog: $scanResult")
+            Log4a.d(TAG, "ReturnProbeDiaLog4a: $scanResult")
             if (mqStatus != MQTTStatus.CONNECT_SUCCESS) showOffline = true
             viewModel.returnProbe(scanResult.removePrefix("\n"))
             clearScanResult = true

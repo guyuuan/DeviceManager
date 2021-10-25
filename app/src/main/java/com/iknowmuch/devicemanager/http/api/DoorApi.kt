@@ -23,19 +23,19 @@ import retrofit2.http.Query
  **/
 interface DoorApi {
     companion object{
-        const val StateSuccess = 1
-        const val StateFailed = 0
+        const val StateClose = 0
+        const val StateOpen = 1
     }
-    @POST("/android/openDoor")
-    suspend fun openDoor(
-        @Query("state") @IntRange(from = 0, to = 1) state: Int,
-        @Query("deptId") deptId: String,
-        @Query("cabinetCode") deviceID: String,
-        @Query("doorNo") doorNo: Int
-    ): DefaultResponseJson
+//    @POST("/android/openDoor")
+//    suspend fun openDoor(
+//        @Query("state") @IntRange(from = 0, to = 1) state: Int,
+//        @Query("deptId") deptId: String,
+//        @Query("cabinetCode") deviceID: String,
+//        @Query("doorNo") doorNo: Int
+//    ): DefaultResponseJson
 
-    @POST("/android/closeDoor")
-    suspend fun closeDoor(
+    @POST("/android/openDoor")
+    suspend fun reportDoorState(
         @Query("state") @IntRange(from = 0, to = 1) state: Int,
         @Query("deptId") deptId: String,
         @Query("cabinetCode") deviceID: String,

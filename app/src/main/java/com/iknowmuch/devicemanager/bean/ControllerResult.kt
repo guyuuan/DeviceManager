@@ -10,5 +10,6 @@ data class ControllerResult(
     val doorNo: Int = 0,
     val status: Int = 0,
     val openState: Boolean = false,
-    val closeState: Boolean? = null
+    val closeState: Boolean? = null,
+    val probeState: Boolean? = null
 )

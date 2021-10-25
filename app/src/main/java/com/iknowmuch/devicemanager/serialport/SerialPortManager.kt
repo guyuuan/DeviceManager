@@ -1,6 +1,5 @@
 package com.iknowmuch.devicemanager.serialport
 
-import android.util.Log
 import android_serialport_api.SerialPort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -9,6 +8,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import me.pqpo.librarylog4a.Log4a
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -32,7 +32,7 @@ class SerialPortManager {
             inputStream = serialPort?.inputStream
             outputStream = serialPort?.outputStream
         } catch (e: Exception) {
-            Log.e(TAG, "init: ", e)
+            Log4a.e(TAG, "init: ", e)
         }
     }
 
@@ -59,7 +59,7 @@ class SerialPortManager {
                     }
 
                 } catch (e: Exception) {
-                    Log.e(TAG, "while: ", e)
+                    Log4a.e(TAG, "while: ", e)
                 }
             }
         }.map {
@@ -87,9 +87,9 @@ class SerialPortManager {
             ?: throw RuntimeException("You should initialize the serial port before running")
         try {
             outputStream.write(command.toUBytes().toByteArray())
-            Log.d(TAG, "write: cmd = ${command.toUBytes().joinToHexString()}")
+            Log4a.d(TAG, "write: cmd = ${command.toUBytes().joinToHexString()}")
         } catch (e: Exception) {
-            Log.e(TAG, "write: ", e)
+            Log4a.e(TAG, "write: ", e)
         }
     }
 

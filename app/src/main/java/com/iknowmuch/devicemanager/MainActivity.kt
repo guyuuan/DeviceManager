@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import androidx.activity.compose.setContent
@@ -39,8 +38,10 @@ import com.iknowmuch.devicemanager.ui.theme.AppTheme
 import com.permissionx.guolindev.PermissionX
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.AndroidEntryPoint
+import me.pqpo.librarylog4a.Log4a
 
 private const val TAG = "MainActivity"
+
 @ExperimentalCoilApi
 @ExperimentalUnsignedTypes
 @ExperimentalComposeUiApi
@@ -57,7 +58,6 @@ class MainActivity : AppCompatActivity() {
     private var touchCount by mutableStateOf(0)
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         PermissionX.init(this).permissions(
             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA,
-            Manifest.permission.REQUEST_INSTALL_PACKAGES
+//            Manifest.permission.REQUEST_INSTALL_PACKAGES
         ).request { allGranted, _, _ ->
             if (allGranted) {
                 setContent {
@@ -86,16 +86,16 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                         // A surface container using the 'background' color from the theme
-
                     }
                 }
+                val intent = Intent(this, MqttService::class.java)
+                startService(intent)
             } else {
                 finish()
             }
 
         }
-        val intent = Intent(this, MqttService::class.java)
-        startService(intent)
+
         initKeepLive()
     }
 
@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity() {
             val x: Float = event.x
             val y: Float = event.y
             if (x > screenWidth - size && x < screenWidth && y > 0 && y < size) {
-                Log.d(TAG, "onTouchEvent: count = $touchCount")
+                Log4a.d(TAG, "onTouchEvent: count = $touchCount")
                 if (++touchCount < 7) {
                     myHandler.postDelayed(clearCountRunnable, 1500)
                 }
@@ -153,6 +153,7 @@ class MainActivity : AppCompatActivity() {
     @ExperimentalUnsignedTypes
     override fun onDestroy() {
         stopService(Intent(this, MqttService::class.java))
+        Log4a.flush()
         super.onDestroy()
     }
 }

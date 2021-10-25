@@ -1,6 +1,5 @@
 package com.iknowmuch.devicemanager.ui.scene.home
 
-import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -73,6 +72,7 @@ import com.iknowmuch.devicemanager.ui.theme.ErrorRed
 import com.iknowmuch.devicemanager.ui.theme.GreenBrush
 import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
 import com.iknowmuch.devicemanager.utils.drawColorShadow
+import me.pqpo.librarylog4a.Log4a
 
 /**
  *@author: Chen
@@ -136,10 +136,11 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
         ScanView(mqStatus, viewModel = viewModel, modifier = Modifier.align(Alignment.BottomEnd))
     }
     UsingDialog(data = controlResult) {
+        viewModel.updateLocalData()
         viewModel.clearControlDoorResult()
     }
     LaunchedEffect(key1 = controlResult) {
-        Log.d(TAG, "controlResult: $controlResult")
+        Log4a.d(TAG, "controlResult: $controlResult")
     }
 }
 
@@ -234,7 +235,7 @@ fun BottomButton(
     val result by viewModel.returnResult
     if (showQRCode) WXQRCodeDialog(onDismissRequest = { showQRCode = false })
     if (result.first != -1) ReturnProbeDialog(homeViewModel = viewModel) {
-        viewModel.clearReturnDialog()
+        viewModel.clearReturnDiaLog4a()
     }
     if (showOffline) NetworkErrorDialog {
         showOffline = false

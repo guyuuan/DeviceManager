@@ -1,11 +1,11 @@
 package com.iknowmuch.devicemanager.repository
 
 import android.content.Context
-import android.util.Log
 import com.iknowmuch.devicemanager.bean.QRCodeJson
 import com.iknowmuch.devicemanager.http.api.WeiXinApi
 import com.iknowmuch.devicemanager.preference.PreferenceManager
 import kotlinx.coroutines.flow.flow
+import me.pqpo.librarylog4a.Log4a
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.roundToInt
@@ -39,7 +39,7 @@ class WeiXinRepository(
         val token = try {
             getAccessToken().accessToken
         } catch (e: Exception) {
-            Log.e(TAG, "getQRCode: ", e)
+            Log4a.e(TAG, "getQRCode: ", e)
             emit(DownloadResult.Failed(e))
             return@flow
         }
@@ -74,7 +74,7 @@ class WeiXinRepository(
                 throw RuntimeException(response.message())
             }
         } catch (e: Exception) {
-            Log.e(TAG, "getQRCode: ", e)
+            Log4a.e(TAG, "getQRCode: ", e)
             emit(DownloadResult.Failed(e))
         }
     }

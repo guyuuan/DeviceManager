@@ -1,7 +1,6 @@
 package com.iknowmuch.devicemanager.mqtt
 
 import android.content.Intent
-import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -19,10 +18,10 @@ import com.iknowmuch.devicemanager.repository.SerialPortDataRepository
 import com.iknowmuch.devicemanager.service.VersionUpdateService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import me.pqpo.librarylog4a.Log4a
 import javax.inject.Inject
 
 private const val TAG = "MqttService"
@@ -58,7 +57,6 @@ class MqttService : LifecycleService() {
     }
 
     override fun onCreate() {
-        Log.d(TAG, "onCreate: ")
         super.onCreate()
         startMqtt()
         collectMqttStatus()
@@ -68,16 +66,15 @@ class MqttService : LifecycleService() {
 //        lifecycleScope.launch(Dispatchers.IO) {
 //            delay(1000)
 //            serialPortDataRepository.controlDoor(1, onOpen = {
-//                Log.d(TAG, "开门: $it")
+//                Log4a.d(TAG, "开门: $it")
 //            }) {door,probe->
-//                Log.d(TAG, "关门: $door 在线:$probe")
+//                Log4a.d(TAG, "关门: $door 在线:$probe")
 //            }
 //        }
     }
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand: ")
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -87,9 +84,8 @@ class MqttService : LifecycleService() {
 //    }
 
     override fun onDestroy() {
-        Log.d(TAG, "onDestroy: ")
-        serialPortDataRepository.close()
         mqttManager.release()
+        serialPortDataRepository.close()
         super.onDestroy()
     }
 
@@ -109,30 +105,13 @@ class MqttService : LifecycleService() {
                         mainRepository.heartBeat()
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "startMqtt: ", e)
+                    Log4a.e(TAG, "startMqtt: ", e)
                 }
                 delay(Config.Minute)
             }
         }
     }
 
-    private fun startSendMessage() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            delay(1000L)
-            while (true) {
-                val client = mqttManager.getClient(clientID) ?: mqttManager.createClient(
-                    this@MqttService,
-                    clientID,
-                    preferenceManager.mqttServer
-                )
-                if (!client.isConnected) {
-                    mqttManager.connect(client)
-                }
-//                mqttManager.publish(client, topic, "Message : Hello MQTT")
-                delay(10 * 60 * 1000L)
-            }
-        }
-    }
 
     private fun collectMqttStatus() {
         lifecycleScope.launch {
@@ -161,58 +140,63 @@ class MqttService : LifecycleService() {
     private suspend fun handlerMqttMessage(mqMessage: MQMessage) {
         val currentTime = System.currentTimeMillis() - 5 * 1000L
         if (mqMessage.topic != topic || mqMessage.timestamp < currentTime) {
-            Log.d(TAG, "handlerMqttMessage: 消息时间${mqMessage.timestamp} 历史消息 now $currentTime")
+            Log4a.d(TAG, "handlerMqttMessage: 消息时间${mqMessage.timestamp} 历史消息 now $currentTime")
             return
         }
         try {
             val json = jsonAdapter.fromJson(mqMessage.message) ?: return
-            Log.d(TAG, "handlerMqttMessage: $json")
+            Log4a.d(TAG, "handlerMqttMessage: $json")
             preferenceManager.deptID = json.data.deptId.toString()
             preferenceManager.token = json.userToken ?: ""
             lifecycleScope.launch(Dispatchers.IO) {
                 if (json.data.newAppVersion == null) {
                     //借还操作
-                    when (json.data.state) {
-                        //借
-                        0 -> {
-                            serialPortDataRepository.controlDoor(json.data.doorNo!!, 0, onOpen = {
-                                Log.d(TAG, "handlerMqttMessage: 开门 $it")
-                                doorApiRepository.openDoor(
-                                    if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
-                                    json.data.deptId.toString(),
-                                    json.data.doorNo
-                                )
-                            }) { door, probe ->
-                                Log.d(TAG, "handlerMqttMessage: 关门 $door 在线$probe")
-                                doorApiRepository.closeDoor(
-                                    if (door) DoorApi.StateSuccess else DoorApi.StateFailed,
-                                    json.data.deptId.toString(),
-                                    json.data.doorNo,
-                                    probeState = probe
-                                )
-                                if (door && !probe) {
-                                    mainRepository.updateCabinetDoorById(json.data.doorNo) {
-                                        it.copy(status = CabinetDoor.Status.Empty)
-                                    }
-                                }
+//                    when (json.data.state) {
+//                        //借
+//                        0 -> {
+                    Log4a.d(TAG, "handlerMqttMessage: ${if (json.data.state == 0) "借" else "还"} ${json.data.doorNo}门")
+                    serialPortDataRepository.controlDoor(
+                        json.data.doorNo!!,
+                        json.data.state!!,
+                        onOpen = { door, probe ->
+                            Log4a.d(TAG, "handlerMqttMessage: 开门 $door 在线 $probe")
+                            doorApiRepository.reportDoorState(
+                                state = if (door) DoorApi.StateOpen else DoorApi.StateClose,
+                                deptId = json.data.deptId.toString(),
+                                doorNo = json.data.doorNo,
+                                probeState = probe
+                            )
+                        }) { door, probe ->
+                        Log4a.d(TAG, "handlerMqttMessage: 关门 $door 在线$probe")
+                        doorApiRepository.reportDoorState(
+                            if (door) DoorApi.StateClose else DoorApi.StateOpen,
+                            json.data.deptId.toString(),
+                            json.data.doorNo,
+                            probeState = probe
+                        )
+                        if (door && !probe) {
+                            mainRepository.updateCabinetDoorById(json.data.doorNo) {
+                                it.copy(status = CabinetDoor.Status.Empty)
                             }
                         }
-                        //还
+                    }
+                }
+/*                        //还
                         else -> {
                             serialPortDataRepository.controlDoor(
                                 json.data.doorNo!!,
                                 state = 1,
                                 onOpen = {
-                                    Log.d(TAG, "handlerMqttMessage: 开门 $it")
+                                    Log4a.d(TAG, "handlerMqttMessage: 开门 $it")
                                     doorApiRepository.openDoor(
-                                        if (it) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                        if (it) DoorApi.StateClose else DoorApi.StateOpen,
                                         json.data.deptId.toString(),
                                         json.data.doorNo
                                     )
                                 }) { door, probe ->
-                                Log.d(TAG, "handlerMqttMessage: 关门 $door 在线$probe")
-                                doorApiRepository.closeDoor(
-                                    if (door) DoorApi.StateSuccess else DoorApi.StateFailed,
+                                Log4a.d(TAG, "handlerMqttMessage: 关门 $door 在线$probe")
+                                doorApiRepository.reportDoorState(
+                                    if (door) DoorApi.StateClose else DoorApi.StateOpen,
                                     json.data.deptId.toString(),
                                     json.data.doorNo,
                                     probeState = probe
@@ -227,9 +211,8 @@ class MqttService : LifecycleService() {
                                     }
                                 }
                             }
-                        }
-                    }
-                } else {
+                        }*/
+                else {
                     //版本更新
                     startService(Intent(this@MqttService, VersionUpdateService::class.java).apply {
                         putExtra(Config.NewVersionURL, json.data.url)
@@ -238,7 +221,7 @@ class MqttService : LifecycleService() {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "handlerMqttMessage: ", e)
+            Log4a.e(TAG, "handlerMqttMessage: ", e)
         } finally {
             preferenceManager.lastMessageTime = mqMessage.timestamp
         }
