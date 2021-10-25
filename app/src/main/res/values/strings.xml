@@ -23,7 +23,7 @@
     <string name="text_status_disabled">禁用</string>
     <string name="text_status_charging">充电中</string>
     <string name="text_status_idle">可借用</string>
-    <string name="text_status_booked">%s已预约</string>
+    <string name="text_status_booked">已预约</string>
     <string name="text_status_fault">故障</string>
     <string name="text_status_error">异常</string>
     <string name="text_cabinet_door_number">柜门: %d</string>

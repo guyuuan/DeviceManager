@@ -1,5 +1,6 @@
 package com.iknowmuch.devicemanager.repository
 
+import android.util.Log
 import com.iknowmuch.devicemanager.bean.ControllerResult
 import com.iknowmuch.devicemanager.preference.PreferenceManager
 import com.iknowmuch.devicemanager.serialport.Command
@@ -109,7 +110,9 @@ class SerialPortDataRepository(
     fun checkDoorState(id: Int): Boolean {
         val data = stateMap[Command.CMD.DoorState]?.get(id - 1) ?: ubyteArrayOf()
         if (data.isEmpty()) return true
-        return 1.toUByte() == data.firstOrNull() && 1.toUByte() == data.lastOrNull()
+        return (1.toUByte() == data.firstOrNull() && 1.toUByte() == data.lastOrNull()).also {
+            Log.d(TAG, "checkDoorState: $id 门 $it")
+        }
     }
 
     //data最后一位 为1代表设备在线,0代表设备离线

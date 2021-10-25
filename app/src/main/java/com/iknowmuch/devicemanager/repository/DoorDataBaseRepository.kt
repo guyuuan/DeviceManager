@@ -50,12 +50,7 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
 
     fun getCabinetDoorFlow() = cabinetDoorDao.getCabinetDoorFlow()
 
-//    private suspend fun updateCabinetDoorInfo(door: CabinetDoor) =
-//        cabinetDoorDao.updateCabinetDoor(door)
-
     private suspend fun getCabinetDoorById(id: Int) = cabinetDoorDao.getCabinetDoorById(id)
-
-//    suspend fun deleteCabinetDoor(door: CabinetDoor) = cabinetDoorDao.deleteCabinetDoor(door)
 
     suspend fun updateCabinetDoorById(id: Int, modifier: (CabinetDoor) -> CabinetDoor) {
         val old = getCabinetDoorById(id)
@@ -102,6 +97,7 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                                         if (abnormalChargingCache.contains(cabinetDoor.probeCode) || cabinetDoor.status == CabinetDoor.Status.Error) {
                                             abnormalChargingCache.remove(cabinetDoor.probeCode)
                                             clearDoorOpenAlarm(
+                                                doorState, probeState,
                                                 apiRepository,
                                                 cabinetDoor,
                                                 totalChargingTime
@@ -115,6 +111,7 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                                         ) {
                                             Log4a.d("TAG", "清除门未关异常: ")
                                             clearDoorOpenAlarm(
+                                                doorState, probeState,
                                                 apiRepository,
                                                 cabinetDoor,
                                                 totalChargingTime
@@ -125,7 +122,6 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                                 }
                                 !probeState && doorState && result.doorNo != cabinetDoor.id -> {
                                     //设备不在线,需要上报设备充电异常
-//                                    coroutineScope.launch(Dispatchers.IO) {
                                     val code = cabinetDoor.probeCode
                                     if (code != null) {
                                         val pair = abnormalChargingCache[code]
@@ -164,11 +160,6 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                                                         )?.status?.let { status ->
                                                             handler.removeMessages(cabinetDoor.id)
                                                             if (status == 200) {
-//                                                                cabinetDoorDao.updateCabinetDoor(
-//                                                                    cabinetDoor.copy(
-//                                                                        status = CabinetDoor.Status.Error,
-//                                                                    )
-//                                                                )
                                                                 abnormalChargingCache[code] =
                                                                     pair.first to currentTime
                                                             }
@@ -187,6 +178,7 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                                         }
                                     } else {
                                         clearDoorOpenAlarm(
+                                            doorState, probeState,
                                             apiRepository,
                                             cabinetDoor,
                                             totalChargingTime
@@ -332,6 +324,7 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
     }
 
     private suspend fun clearDoorOpenAlarm(
+        doorState: Boolean, probeState: Boolean,
         apiRepository: CabinetApiRepository,
         cabinetDoor: CabinetDoor,
         totalChargingTime: Long
@@ -346,6 +339,12 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                         availableTime = totalChargingTime / Config.Minute.toFloat()
                     )
                 )
+                if (doorState) {
+                    doorOpenErrorCache.remove(cabinetDoor.id)
+                }
+                if (probeState) {
+                    abnormalChargingCache.remove(cabinetDoor.probeCode)
+                }
             }
         }
     }
