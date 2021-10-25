@@ -48,9 +48,19 @@ object AppModule {
                     .build()
                 chain.proceed(newRequest)
             }
+            addInterceptor { chain ->
+                val request = chain.request()
+                var response = chain.proceed(request)
+                var tryCount = 0
+                while (!response.isSuccessful && tryCount < Config.MaxTryCount) {
+                    tryCount++
+                    response = chain.proceed(request)
+                }
+                response
+            }
             if (BuildConfig.DEBUG) {
                 addInterceptor(HttpLoggingInterceptor {
-                    Log4a.d("Retrofit", "Log4a: $it")
+                    Log4a.d("Retrofit", "log: $it")
                 }.also { it.level = HttpLoggingInterceptor.Level.BODY })
             }
         }.build()

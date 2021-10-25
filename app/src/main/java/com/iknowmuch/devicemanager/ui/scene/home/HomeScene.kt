@@ -201,7 +201,7 @@ fun BottomButton(
     viewModel: HomeViewModel,
     modifier: Modifier = Modifier
 ) {
-    val deivce by viewModel.device.collectAsState()
+    val device by viewModel.device.collectAsState()
     var showQRCode by remember {
         mutableStateOf(false)
     }
@@ -213,7 +213,7 @@ fun BottomButton(
             modifier = Modifier
                 .width(494.dp)
                 .height(204.dp)
-                .clickable(deivce.enabled) {
+                .clickable(device.enabled) {
                     if (mqStatus != MQTTStatus.CONNECT_SUCCESS) {
                         showOffline = true
                         return@clickable
@@ -221,7 +221,7 @@ fun BottomButton(
                     showQRCode = !showQRCode
                 }
                 .background(
-                    brush = if (deivce.enabled) GreenBrush else UnabledBrush,
+                    brush = if (device.enabled) GreenBrush else UnabledBrush,
                     shape = MaterialTheme.shapes.medium
                 ),
             contentAlignment = Alignment.Center
@@ -237,7 +237,7 @@ fun BottomButton(
     val result by viewModel.returnResult
     if (showQRCode) WXQRCodeDialog(onDismissRequest = { showQRCode = false })
     if (result.first != -1) ReturnProbeDialog(homeViewModel = viewModel) {
-        viewModel.clearReturnDiaLog4a()
+        viewModel.clearReturnDialog()
     }
     if (showOffline) NetworkErrorDialog {
         showOffline = false

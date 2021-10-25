@@ -1,5 +1,6 @@
 package com.iknowmuch.devicemanager.ui.scene.home
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.pqpo.librarylog4a.Log4a
+import java.text.SimpleDateFormat
 import javax.inject.Inject
 import kotlin.math.roundToLong
 
@@ -55,14 +57,28 @@ class HomeViewModel @Inject constructor(
         //不为空说明是更新过后重新启动的
         if (preferenceManager.updateRecord.isNotEmpty()) {
             viewModelScope.launch(Dispatchers.IO) {
+//                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
                 val record = preferenceManager.updateRecord.toList()
                 val currentVersion = AppUtils.getAppVersionName()
-                val recordVersion = record[1]
-                val updateTime = record[0]
+                val r0 = record[0]
+                val r1 = record[1]
+                val recordVersion :String
+                val updateTime :String
+                if (r0.contains("-")){
+                    updateTime = r0
+                    recordVersion = r1
+                }else{
+                    updateTime = r1
+                    recordVersion = r0
+                }
                 val state = if (currentVersion == recordVersion) 1 else 0
-                repository.updateRecordReport(
-                    state = state, version = currentVersion, updateTime = updateTime
-                )
+                try {
+                    repository.updateRecordReport(
+                        state = state, version = currentVersion, updateTime = updateTime
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "updateRecordReport: ", e)
+                }
             }
         }
 
@@ -130,7 +146,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun clearReturnDiaLog4a() {
+    fun clearReturnDialog() {
         _returnResult.value = -1 to ""
     }
 

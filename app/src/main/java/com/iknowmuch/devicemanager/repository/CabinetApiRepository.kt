@@ -59,7 +59,12 @@ class CabinetApiRepository(
                     if (data != null) {
                         doorDataBaseRepository.updateCabinetDoorById(data.cabinetDoorNo) { door ->
                             door.copy(
-                                devicePower = data.power ?: 0,
+                                devicePower = try {
+                                    (data.power ?: "0").toInt()
+                                } catch (e: Exception) {
+                                    Log4a.e(TAG, "updateLocaleData: ", e)
+                                    0
+                                },
                                 availableTime = try {
                                     data.availableTime?.split("小时")?.firstOrNull()?.toFloat()
                                 } catch (e: Exception) {
@@ -69,7 +74,7 @@ class CabinetApiRepository(
                                 probeName = data.probeName,
                                 probeCode = data.probeCode,
                                 status = if (e.cabinetDoorState == 0) {
-                                    if (e.closeState == 0) {
+                                    if (e.closeState == 1) {
                                         CabinetDoor.Status.Error
                                     } else {
                                         when (data.probeState) {
@@ -92,7 +97,7 @@ class CabinetApiRepository(
                                 remainingChargingTime = null,
                                 probeCode = null,
                                 probeName = null,
-                                status = if (e.cabinetDoorState == 1) CabinetDoor.Status.Disabled else if (e.closeState == 0) CabinetDoor.Status.Error else CabinetDoor.Status.Empty
+                                status = if (e.cabinetDoorState == 1) CabinetDoor.Status.Disabled else if (e.closeState == 1) CabinetDoor.Status.Error else CabinetDoor.Status.Empty
                             )
                         }
                     }

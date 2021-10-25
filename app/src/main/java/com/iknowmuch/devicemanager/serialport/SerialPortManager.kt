@@ -27,13 +27,11 @@ class SerialPortManager {
     private var outputStream: OutputStream? = null
 
     fun init(path: String) {
-        try {
+
             serialPort = SerialPort(File(path), 115200, 0)
             inputStream = serialPort?.inputStream
             outputStream = serialPort?.outputStream
-        } catch (e: Exception) {
-            Log4a.e(TAG, "init: ", e)
-        }
+
     }
 
 

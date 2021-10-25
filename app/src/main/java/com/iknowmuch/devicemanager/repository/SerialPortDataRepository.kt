@@ -50,7 +50,12 @@ class SerialPortDataRepository(
 
     @ExperimentalUnsignedTypes
     fun init() {
-        serialPortManager.init(preferenceManager.serialPortPath)
+        try {
+            serialPortManager.init(preferenceManager.serialPortPath)
+        } catch (e: Exception) {
+            Log4a.e(TAG, "init: ", e)
+            return
+        }
         coroutineScope.launch(Dispatchers.IO) {
             serialPortData.collect {
                 Log4a.d(TAG, "get serial port message: ${it.joinToHexString()}")
@@ -199,9 +204,11 @@ class SerialPortDataRepository(
             )
         }
     }
-    private  fun clearDoorState(id: Int){
-        stateMap[Command.CMD.DoorState]?.set(id-1, ubyteArrayOf())
+
+    private fun clearDoorState(id: Int) {
+        stateMap[Command.CMD.DoorState]?.set(id - 1, ubyteArrayOf())
     }
+
     suspend fun clearControlDoorResult() = _controlDoorResult.emit(ControllerResult())
 
     suspend fun stopCharging(id: Int) = write(

@@ -28,4 +28,5 @@ object Config {
     const val ErrorReportDelay = 60* 10 * 1000L
     const val NewVersionURL = "new_version_url"
     const val NewVersion = "new_version"
+    const val MaxTryCount = 5
 }

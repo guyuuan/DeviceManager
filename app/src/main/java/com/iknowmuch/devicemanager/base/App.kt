@@ -1,6 +1,7 @@
 package com.iknowmuch.devicemanager.base
 
 import android.app.Application
+import com.iknowmuch.devicemanager.log.LogInit
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.HiltAndroidApp
 
@@ -14,6 +15,6 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         MMKV.initialize(this)
-
+        LogInit.init(this)
     }
 }

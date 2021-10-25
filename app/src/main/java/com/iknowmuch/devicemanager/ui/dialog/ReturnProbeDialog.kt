@@ -24,9 +24,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.addTextChangedListener
 import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.mqtt.MQTTStatus
+import com.iknowmuch.devicemanager.ui.LocalInsetsController
 import com.iknowmuch.devicemanager.ui.scene.home.HomeViewModel
 import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
 import kotlinx.coroutines.delay
@@ -64,6 +66,7 @@ fun ReturnSuccess(onDismissRequest: () -> Unit) {
                 modifier = Modifier.padding(vertical = 96.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(86.dp))
                 Image(
                     painter = painterResource(id = R.drawable.ic_success),
                     contentDescription = "success"
@@ -92,6 +95,7 @@ fun ReturnFailed(message: String, onDismissRequest: () -> Unit) {
                 AutoCloseColumn(time = 5, modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f), onCountdownEnd = { onDismissRequest() }) {
+                    Spacer(modifier = Modifier.height(86.dp))
                     Image(
                         painter = painterResource(id = R.drawable.ic_error),
                         contentDescription = null
@@ -121,10 +125,12 @@ fun ScanView(mqStatus: MQTTStatus, viewModel: HomeViewModel, modifier: Modifier 
     var clearScanResult by remember {
         mutableStateOf(false)
     }
+    val insetsController = LocalInsetsController.current
     AndroidView(factory = { cxt ->
         EditText(cxt).apply {
             addTextChangedListener {
                 scanResult = it.toString()
+                insetsController.hide(WindowInsetsCompat.Type.ime())
             }
             requestFocus()
         }
@@ -143,7 +149,10 @@ fun ScanView(mqStatus: MQTTStatus, viewModel: HomeViewModel, modifier: Modifier 
         delay(500)
         if (scanResult.isNotEmpty()) {
             Log4a.d(TAG, "ReturnProbeDiaLog4a: $scanResult")
-            if (mqStatus != MQTTStatus.CONNECT_SUCCESS) showOffline = true
+            if (mqStatus != MQTTStatus.CONNECT_SUCCESS) {
+                showOffline = true
+                return@LaunchedEffect
+            }
             viewModel.returnProbe(scanResult.removePrefix("\n"))
             clearScanResult = true
         }

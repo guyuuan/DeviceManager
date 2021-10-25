@@ -19,8 +19,7 @@ class PreferenceManager(
     updateRecordPreference: UpdateRecordPreference
 ) {
     var deviceID by deviceIDPreference
-
-    //    var deviceID = "124"
+//    var deviceID = "8944c483b3567702"
     var deptID by deptIDPreference
 
     //    var deptID = "14"
