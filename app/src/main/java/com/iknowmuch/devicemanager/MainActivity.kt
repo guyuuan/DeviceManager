@@ -28,6 +28,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.pager.ExperimentalPagerApi
+import com.iknowmuch.devicemanager.mqtt.MqttManager
 import com.iknowmuch.devicemanager.mqtt.MqttService
 import com.iknowmuch.devicemanager.preference.KeepLivePreference
 import com.iknowmuch.devicemanager.service.KeepLiveService
@@ -39,6 +40,7 @@ import com.permissionx.guolindev.PermissionX
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.AndroidEntryPoint
 import me.pqpo.librarylog4a.Log4a
+import javax.inject.Inject
 
 private const val TAG = "MainActivity"
 
@@ -56,7 +58,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var touchCount by mutableStateOf(0)
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,7 +151,6 @@ class MainActivity : AppCompatActivity() {
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
     }
 
-    @ExperimentalUnsignedTypes
     override fun onDestroy() {
         stopService(Intent(this, MqttService::class.java))
         Log4a.flush()

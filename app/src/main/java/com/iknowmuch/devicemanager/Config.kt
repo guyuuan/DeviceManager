@@ -18,14 +18,14 @@ object Config {
     const val DEFAULT_AUTO_JUMP_TIME = 30
     const val DEFAULT_CHARGING_TIME = 2f
 
-    //    val DEFAULT_MQTT_SERVER = if (BuildConfig.DEBUG) "10.6.3.126:1883" else "symq.iknowmuch.com"
+//    val DEFAULT_MQTT_SERVER = if (BuildConfig.DEBUG) "10.6.3.126:1883" else "symq.iknowmuch.com"
 //    const val DEFAULT_MQTT_SERVER = "39.100.118.46:1883"
     const val DEFAULT_MQTT_SERVER = "skechersmq.iknowmuch.com"
 
     private const val MQTT_TOPIC = "android.asset.topic."
     fun getTopic(id: String) = "$MQTT_TOPIC$id"
 
-    const val ErrorReportDelay = 60* 10 * 1000L
+    const val ErrorReportDelay = 60 * 10 * 1000L
     const val NewVersionURL = "new_version_url"
     const val NewVersion = "new_version"
     const val MaxTryCount = 5

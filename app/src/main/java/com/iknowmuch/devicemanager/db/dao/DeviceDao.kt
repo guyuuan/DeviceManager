@@ -21,6 +21,9 @@ interface DeviceDao {
     @Query("SELECT * FROM device WHERE primaryKey = 1")
     fun getDeviceInfo(): Flow<Device>
 
+    @Query("SELECT * FROM device WHERE primaryKey = 1")
+    suspend fun getCurrentDeviceInfo(): Device
+
     @Update
     suspend fun updateDeviceInfo(device: Device)
 }

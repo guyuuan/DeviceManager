@@ -7,18 +7,10 @@ import com.iknowmuch.devicemanager.serialport.Command
 import com.iknowmuch.devicemanager.serialport.SerialPortManager
 import com.iknowmuch.devicemanager.serialport.joinToHexString
 import com.iknowmuch.devicemanager.serialport.toCommand
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import me.pqpo.librarylog4a.Log4a
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  *@author: Chen
@@ -36,11 +28,11 @@ class SerialPortDataRepository(
 
     private val _controlDoorResult = MutableStateFlow(ControllerResult())
     val controlResult: StateFlow<ControllerResult> get() = _controlDoorResult
-    private val stateMap = mapOf(
-        Command.CMD.DoorState to Array(6) { ubyteArrayOf() },
-        Command.CMD.ProbeState to Array(6) { ubyteArrayOf() },
-        Command.CMD.Open to Array(1) { ubyteArrayOf() }
-    )
+    private val stateMap = ConcurrentHashMap<Command.CMD, Array<UByteArray>>().apply {
+        put(Command.CMD.DoorState, Array(6) { ubyteArrayOf() })
+        put(Command.CMD.ProbeState, Array(6) { ubyteArrayOf() })
+        put(Command.CMD.Open, Array(1) { ubyteArrayOf() })
+    }
 
     @ExperimentalUnsignedTypes
     private val serialPortData by lazy {
@@ -136,6 +128,7 @@ class SerialPortDataRepository(
 
 
     private suspend fun openDoor(id: Int): Boolean {
+        stateMap[Command.CMD.Open]?.set(0, ubyteArrayOf())
         write(
             Command(
                 cmd = Command.CMD.Open.ubyte,
@@ -144,7 +137,7 @@ class SerialPortDataRepository(
         )
         val result: Boolean = withTimeoutOrNull(4000L) {
             while (true) {
-                delay(500L)
+                delay(1500L)
                 val arr = stateMap[Command.CMD.Open]?.first()
                 if (!arr.isNullOrEmpty()) {
                     return@withTimeoutOrNull (arr.first() == 1.toUByte()).also {

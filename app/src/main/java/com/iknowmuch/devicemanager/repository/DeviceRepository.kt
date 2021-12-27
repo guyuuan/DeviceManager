@@ -16,6 +16,7 @@ class DeviceRepository(
 
     fun getDeviceInfo() = deviceDao.getDeviceInfo()
 
+    suspend fun getCurrentDeviceInfo() = deviceDao.getCurrentDeviceInfo()
     suspend fun insertDeviceInfo() {
         deviceDao.insertDeviceInfo(Device(primaryKey = 1))
     }

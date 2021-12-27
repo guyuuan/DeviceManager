@@ -43,7 +43,7 @@ class CabinetApiRepository(
         deviceRepository: DeviceRepository
     ) {
         val homeData = getHomeData()
-        if (homeData == null || homeData.data?.data.isNullOrEmpty()) {
+        if (homeData == null || homeData.data?.data.isNullOrEmpty() && deviceRepository.getCurrentDeviceInfo().name != "智能柜") {
             deviceRepository.updateDeviceInfo()
         }
         homeData?.data?.let {

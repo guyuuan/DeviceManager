@@ -1,6 +1,7 @@
 package com.iknowmuch.devicemanager.mqtt
 
 import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -49,7 +50,6 @@ class MqttService : LifecycleService() {
 
     private val clientID by lazy {
         preferenceManager.deviceID
-//        "124"
     }
 
     private val topic by lazy {
@@ -62,20 +62,7 @@ class MqttService : LifecycleService() {
         collectMqttStatus()
         collectMqttMessage()
         serialPortDataRepository.init()
-//        startSendMessage()
-//        lifecycleScope.launch(Dispatchers.IO) {
-//            delay(1000)
-//            serialPortDataRepository.controlDoor(1, onOpen = {
-//                Log4a.d(TAG, "开门: $it")
-//            }) {door,probe->
-//                Log4a.d(TAG, "关门: $door 在线:$probe")
-//            }
-//        }
-    }
 
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return super.onStartCommand(intent, flags, startId)
     }
 
 //    override fun onBind(intent: Intent): IBinder {

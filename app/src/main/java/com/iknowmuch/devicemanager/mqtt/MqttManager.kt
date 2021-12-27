@@ -1,6 +1,7 @@
 package com.iknowmuch.devicemanager.mqtt
 
 import android.content.Context
+import android.util.Log
 import com.iknowmuch.devicemanager.Config
 import com.iknowmuch.devicemanager.bean.MQMessage
 import kotlinx.coroutines.CoroutineScope
@@ -11,12 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import me.pqpo.librarylog4a.Log4a
 import org.eclipse.paho.android.service.MqttAndroidClient
-import org.eclipse.paho.client.mqttv3.IMqttActionListener
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
-import org.eclipse.paho.client.mqttv3.IMqttToken
-import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions
-import org.eclipse.paho.client.mqttv3.MqttMessage
+import org.eclipse.paho.client.mqttv3.*
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 
 private const val TAG = "MqttManager"
@@ -24,7 +20,7 @@ private const val TAG = "MqttManager"
 class MqttManager {
 
     init {
-        Log4a.d(TAG, "init: ")
+        Log.d(TAG, "init: ")
     }
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
@@ -56,6 +52,7 @@ class MqttManager {
                     }
 
                     override fun deliveryComplete(token: IMqttDeliveryToken?) {
+                        Log.d(TAG, "deliveryComplete: ")
                     }
 
                     override fun connectComplete(reconnect: Boolean, serverURI: String?) {
@@ -141,20 +138,22 @@ class MqttManager {
     fun release() {
         coroutineScope.launch {
             mqttStatusMap.emit(emptyMap())
-        }
-        for (entry in clientsMap) {
-            if (entry.value.isConnected) {
-                try{
-                    entry.value.unregisterResources()
-                    entry.value.close()
-                }catch (e:Exception){
-                    Log4a.e(TAG, "release: ", e)
-                }finally {
-                    clientsMap.remove(entry.key)
+
+            for (entry in clientsMap) {
+                if (entry.value.isConnected) {
+                    try {
+                        entry.value.unregisterResources()
+                        entry.value.close()
+                        entry.value.disconnect()
+                    } catch (e: Exception) {
+                        Log4a.e(TAG, "release: ", e)
+                    } finally {
+                        clientsMap.remove(entry.key)
+                    }
                 }
             }
+            clientsMap.clear()
         }
-        clientsMap.clear()
     }
 
     fun connect(client: MqttAndroidClient) {
