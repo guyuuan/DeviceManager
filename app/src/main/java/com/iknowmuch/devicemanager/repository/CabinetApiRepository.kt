@@ -157,6 +157,16 @@ class CabinetApiRepository(
         cabinetDoorNo = doorNo.toString()
     )
 
+    suspend fun clearChargingErrorAlarm(
+        doorNo: Int,probeCode: String
+    ) = reportAlarm(
+        createTime = "", lastTime = "",
+        type = "0",
+        state = "3",
+        content = "清除$probeCode 充电异常", probeCode = probeCode,
+        cabinetDoorNo = doorNo.toString()
+    )
+
     private suspend fun reportAlarm(
         cabinetCode: String = preferenceManager.deviceID,
         deptId: String = preferenceManager.deptID,

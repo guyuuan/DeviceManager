@@ -18,7 +18,6 @@ import me.pqpo.librarylog4a.Log4a
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.HashMap
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
@@ -98,7 +97,7 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                                     if (cabinetDoor.probeCode != null) {
                                         if (abnormalChargingCache.contains(cabinetDoor.probeCode) || cabinetDoor.status == CabinetDoor.Status.Error) {
                                             abnormalChargingCache.remove(cabinetDoor.probeCode)
-                                            clearDoorOpenAlarm(
+                                            clearChargingErrorAlarm(
                                                 doorState, probeState,
                                                 apiRepository,
                                                 cabinetDoor,
@@ -363,6 +362,12 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
     ) {
         apiRepository.clearDoorOpenAlarm(cabinetDoor.id)?.status?.let { status ->
             if (status == 200) {
+                if (doorState) {
+                    doorOpenErrorCache.remove(cabinetDoor.id)
+                }
+                if (probeState) {
+                    abnormalChargingCache.remove(cabinetDoor.probeCode ?: return)
+                }
                 cabinetDoorDao.updateCabinetDoor(
                     cabinetDoor.copy(
                         status = if (cabinetDoor.probeCode != null) CabinetDoor.Status.Charging else CabinetDoor.Status.Empty,
@@ -371,12 +376,35 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                         availableTime = totalChargingTime / Config.Minute.toFloat()
                     )
                 )
+
+            }
+            handler.removeMessages(cabinetDoor.id)
+        }
+    }
+
+    private suspend fun clearChargingErrorAlarm(
+        doorState: Boolean, probeState: Boolean,
+        apiRepository: CabinetApiRepository,
+        cabinetDoor: CabinetDoor,
+        totalChargingTime: Long
+    ) {
+        apiRepository.clearChargingErrorAlarm(cabinetDoor.id, cabinetDoor.probeCode?:"" )?.status?.let { status ->
+            if (status == 200) {
                 if (doorState) {
                     doorOpenErrorCache.remove(cabinetDoor.id)
                 }
                 if (probeState) {
                     abnormalChargingCache.remove(cabinetDoor.probeCode ?: return)
                 }
+                cabinetDoorDao.updateCabinetDoor(
+                    cabinetDoor.copy(
+                        status = if (cabinetDoor.probeCode != null) CabinetDoor.Status.Charging else CabinetDoor.Status.Empty,
+                        devicePower = 0,
+                        remainingChargingTime = null,
+                        availableTime = totalChargingTime / Config.Minute.toFloat()
+                    )
+                )
+
             }
             handler.removeMessages(cabinetDoor.id)
         }
