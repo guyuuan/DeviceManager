@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import me.pqpo.librarylog4a.Log4a
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.HashMap
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -68,10 +69,10 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
     private var oldData: CabinetDataJson? = null
 
     //值为充电异常的设备id
-    private val abnormalChargingCache = HashMap<String, Pair<Long, Long>>()
+    private val abnormalChargingCache = ConcurrentHashMap<String, Pair<Long, Long>>()
 
     //柜门未关闭异常缓存,key为柜门id,value为首次发现异常时间和之后再次上报的时间
-    private val doorOpenErrorCache = HashMap<Int, Pair<Long, Long>>()
+    private val doorOpenErrorCache = ConcurrentHashMap<Int, Pair<Long, Long>>()
 
     @ExperimentalUnsignedTypes
     fun startDataAutoUpdate(
@@ -360,7 +361,6 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
         cabinetDoor: CabinetDoor,
         totalChargingTime: Long
     ) {
-        handler.removeMessages(cabinetDoor.id)
         apiRepository.clearDoorOpenAlarm(cabinetDoor.id)?.status?.let { status ->
             if (status == 200) {
                 cabinetDoorDao.updateCabinetDoor(
@@ -378,6 +378,7 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                     abnormalChargingCache.remove(cabinetDoor.probeCode ?: return)
                 }
             }
+            handler.removeMessages(cabinetDoor.id)
         }
     }
 
