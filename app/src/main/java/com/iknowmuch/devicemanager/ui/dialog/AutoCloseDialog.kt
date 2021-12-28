@@ -3,29 +3,9 @@ package com.iknowmuch.devicemanager.ui.dialog
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -41,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.iknowmuch.devicemanager.BuildConfig
 import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.repository.WeiXinRepository
 import com.iknowmuch.devicemanager.ui.LocalInsetsController
@@ -172,31 +153,34 @@ fun AutoCloseColumn(
     var countdown by remember {
         mutableStateOf(time)
     }
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        if (showCountdown) {
-            Row(
-                Modifier
-                    .padding(top = 30.dp)
-                    .padding(horizontal = 34.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.text_auto_close_time).format(countdown),
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.subtitle1,
-                    color = MaterialTheme.colors.primary
-                )
-                IconButton(onClick = { onCountdownEnd() }, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_close),
-                        contentDescription = "close"
+    Box(contentAlignment = Alignment.BottomEnd) {
+        Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+            if (showCountdown) {
+                Row(
+                    Modifier
+                        .padding(top = 30.dp)
+                        .padding(horizontal = 34.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.text_auto_close_time).format(countdown),
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.subtitle1,
+                        color = MaterialTheme.colors.primary
                     )
+                    IconButton(onClick = { onCountdownEnd() }, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_close),
+                            contentDescription = "close"
+                        )
+                    }
                 }
             }
+            content()
         }
-        content()
+        if (BuildConfig.DEBUG) Text(text = "倒计时 $countdown s")
     }
 
     LaunchedEffect(key1 = countdown) {

@@ -53,6 +53,8 @@ object AppModule {
                 var response = chain.proceed(request)
                 var tryCount = 0
                 while (!response.isSuccessful && tryCount < Config.MaxTryCount) {
+                    response.close()
+                    Thread.sleep(1000)
                     tryCount++
                     response = chain.proceed(request)
                 }
