@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -23,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -34,6 +36,7 @@ import com.iknowmuch.devicemanager.bean.ControllerResult
 import com.iknowmuch.devicemanager.ui.LocalInsetsController
 import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
 import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
+import kotlinx.coroutines.delay
 
 /**
  *@author: Chen
@@ -44,11 +47,20 @@ import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
 @Composable
 fun UsingDialog(data: ControllerResult, onDismissRequest: () -> Unit) {
     if (data.doorNo == 0) return
+    var showCloseFailed by remember {
+        mutableStateOf(false)
+    }
     when {
-        data.openState && data.closeState == null -> OpenSuccess(data = data)
-        !data.openState && data.closeState == null -> OpenFailed(onDismissRequest)
-        data.closeState == true -> CloseSuccess(data, onDismissRequest)
-        data.closeState == false -> CloseFailed(data, onDismissRequest)
+        data.openState && data.closeState == null && !showCloseFailed -> OpenSuccess(
+            data = data,
+            onDismissRequest = {
+                showCloseFailed = true
+            })
+        !data.openState && data.closeState == null && !showCloseFailed -> OpenFailed(
+            onDismissRequest
+        )
+        data.closeState == true && !showCloseFailed -> CloseSuccess(data, onDismissRequest)
+        data.closeState == false || showCloseFailed -> CloseFailed(data, onDismissRequest)
     }
 }
 
@@ -59,7 +71,7 @@ fun CloseFailed(data: ControllerResult, onDismissRequest: () -> Unit) {
     val message: String
     when {
         data.status == 1 && data.probeState == true ||
-        data.status == 0 && data.probeState == false -> {
+                data.status == 0 && data.probeState == false -> {
             image = R.drawable.ic_error
             message = stringResource(R.string.text_door_is_open)
         }
@@ -95,7 +107,7 @@ fun CloseSuccess(data: ControllerResult, onDismissRequest: () -> Unit) {
             image = R.drawable.ic_error
             message = "设备未拿走"
         }
-        data.status == 1 && data.probeState == false ->{
+        data.status == 1 && data.probeState == false -> {
             image = R.drawable.ic_error
             message = "设备未放入"
         }
@@ -123,15 +135,26 @@ fun CloseSuccess(data: ControllerResult, onDismissRequest: () -> Unit) {
 
 @ExperimentalComposeUiApi
 @Composable
-private fun OpenSuccess(data: ControllerResult) {
+private fun OpenSuccess(data: ControllerResult, onDismissRequest: () -> Unit) {
     Dialog(
-        onDismissRequest = {},
+        onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             dismissOnBackPress = false,
             dismissOnClickOutside = false,
             usePlatformDefaultWidth = false
         )
     ) {
+        //开门成功后两分钟后还没收到关门结果,就强制显示关门失败
+        var countdown by remember {
+            mutableStateOf(120)
+        }
+        LaunchedEffect(key1 = countdown) {
+            delay(1000)
+            countdown = (countdown - 1).coerceAtLeast(0)
+            if (countdown == 0) {
+                onDismissRequest()
+            }
+        }
         Column(
             Modifier
                 .fillMaxWidth()

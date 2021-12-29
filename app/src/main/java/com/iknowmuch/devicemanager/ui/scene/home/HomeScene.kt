@@ -34,7 +34,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,7 +72,6 @@ import com.iknowmuch.devicemanager.ui.theme.GreenBrush
 import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
 import com.iknowmuch.devicemanager.ui.theme.UnabledBrush
 import com.iknowmuch.devicemanager.utils.drawColorShadow
-import me.pqpo.librarylog4a.Log4a
 
 /**
  *@author: Chen
@@ -140,9 +138,6 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
         viewModel.updateLocalData()
         viewModel.clearControlDoorResult()
     }
-    LaunchedEffect(key1 = controlResult) {
-        Log4a.d(TAG, "controlResult: $controlResult")
-    }
 }
 
 @Composable
@@ -201,6 +196,7 @@ fun BottomButton(
     viewModel: HomeViewModel,
     modifier: Modifier = Modifier
 ) {
+    val controlResult by viewModel.controlResult.collectAsState()
     val device by viewModel.device.collectAsState()
     var showQRCode by remember {
         mutableStateOf(false)
@@ -235,6 +231,10 @@ fun BottomButton(
         }
     }
     val result by viewModel.returnResult
+    if (controlResult.doorNo != 0) {
+        showOffline = false
+        showQRCode = false
+    }
     if (showQRCode) WXQRCodeDialog(onDismissRequest = { showQRCode = false })
     if (result.first != -1) ReturnProbeDialog(homeViewModel = viewModel) {
         viewModel.clearReturnDialog()
