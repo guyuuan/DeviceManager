@@ -40,10 +40,23 @@ class MainRepository @ExperimentalUnsignedTypes constructor(
         deviceRepository: DeviceRepository
     ) = apiRepository.updateLocaleData(dataBaseRepository, deviceRepository)
 
-    suspend fun heartBeat() = apiRepository.heartBeat()
+    suspend fun heartBeat() = apiRepository.heartBeat(getAllDoorStatus())
 
     suspend fun returnProbe(probeCode: String) = apiRepository.returnProbe(probeCode)
 
     suspend fun updateRecordReport(state: Int, version: String, updateTime: String) =
         apiRepository.reportUpdateResult(state, version, updateTime)
+
+    @ExperimentalUnsignedTypes
+    fun getAllDoorStatus(): List<Map<String, Any>> {
+        val list = mutableListOf<Map<String, Any>>()
+        repeat(6){no->
+            list+=mapOf(
+                "doorNo" to no+1,
+                "doorStatus" to serialPortDataRepository.checkDoorState(no+1),
+                "probeStatus" to serialPortDataRepository.checkProbeState(no+1)
+            )
+        }
+        return  list
+    }
 }

@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.pqpo.librarylog4a.Log4a
-import java.text.SimpleDateFormat
 import javax.inject.Inject
 import kotlin.math.roundToLong
 
@@ -33,7 +32,7 @@ private const val TAG = "HomeViewModel"
 @ExperimentalUnsignedTypes
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    preferenceManager: PreferenceManager,
+    private val preferenceManager: PreferenceManager,
     private val deviceRepository: DeviceRepository,
     private val serialPortDataRepository: SerialPortDataRepository,
     private val repository: MainRepository
@@ -52,6 +51,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope, started = SharingStarted.Lazily,
         Device()
     )
+    val totalChargingTime get() = (preferenceManager.chargingTime * 60).toInt()
 
     init {
         //不为空说明是更新过后重新启动的
@@ -62,12 +62,12 @@ class HomeViewModel @Inject constructor(
                 val currentVersion = AppUtils.getAppVersionName()
                 val r0 = record[0]
                 val r1 = record[1]
-                val recordVersion :String
-                val updateTime :String
-                if (r0.contains("-")){
+                val recordVersion: String
+                val updateTime: String
+                if (r0.contains("-")) {
                     updateTime = r0
                     recordVersion = r1
-                }else{
+                } else {
                     updateTime = r1
                     recordVersion = r0
                 }

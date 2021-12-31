@@ -22,7 +22,7 @@ interface CabinetApi {
     * "appVersion":"1.0"
     * */
     @POST("/cgi-bin/onlineStatus")
-    suspend fun heartBeat(@Body map: Map<String, String>): DefaultResponseJson
+    suspend fun heartBeat(@Body map: Map<String, @JvmSuppressWildcards Any>): DefaultResponseJson
 
     /*
     * cabinetCode: 设备编号
@@ -59,7 +59,7 @@ interface CabinetApi {
 
     @POST("borrowAndReturn/scanReturn")
     suspend fun returnProbe(
-        @Query("probeCode",encoded = true) probeCode: String,
+        @Query("probeCode", encoded = true) probeCode: String,
         @Query("cabinetCode") cabinetCode: String,
         @Query("deptId") deptId: String
     ): ReturnProbeResult
@@ -74,5 +74,5 @@ interface CabinetApi {
     *  }
     * */
     @POST("/cgi-bin/appVersion")
-    suspend fun reportUpdateResult(@Body data: Map<String, String>) :DefaultResponseJson
+    suspend fun reportUpdateResult(@Body data: Map<String, String>): DefaultResponseJson
 }

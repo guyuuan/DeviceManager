@@ -92,7 +92,7 @@ class DoorDataBaseRepository @ExperimentalUnsignedTypes constructor(
                                 serialPortDataRepository.checkProbeState(cabinetDoor.id)
                             val doorState = serialPortDataRepository.checkDoorState(cabinetDoor.id)
                             when {
-                                doorState && probeState -> {
+                                doorState && probeState && result.doorNo != cabinetDoor.id-> {
                                     //清除充电异常警报
                                     if (cabinetDoor.probeCode != null) {
                                         if (abnormalChargingCache.contains(cabinetDoor.probeCode) || cabinetDoor.status == CabinetDoor.Status.Error) {

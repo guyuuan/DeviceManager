@@ -28,9 +28,9 @@
     <string name="text_status_error">异常</string>
     <string name="text_cabinet_door_number">柜门: %d</string>
     <string name="text_device_code">探头名称: %s</string>
-    <string name="text_available_time">预计充满时长: %d分钟</string>
+    <string name="text_available_time">已充电时长: %d分钟</string>
     <string name="text_empty_device_code">探头名称：——</string>
-    <string name="text_empty_available_time">预计充满时长：——</string>
+    <string name="text_empty_available_time">已充电时长：——</string>
     <string name="text_return">还</string>
     <string name="text_borrow">借</string>
     <string name="text_auto_close_time">%dS后自动关闭</string>

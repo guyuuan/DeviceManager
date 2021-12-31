@@ -69,11 +69,13 @@ class CabinetApiRepository(
                                     0
                                 },
                                 availableTime = try {
-                                    data.availableTime?.split("小时")?.firstOrNull()?.toFloat()
+                                    if (data.probeState == 1) null
+                                    else data.availableTime?.split("小时")
+                                        ?.firstOrNull()?.toFloat()
                                 } catch (e: Exception) {
                                     Log4a.e(TAG, "updateLocaleData: ", e)
                                     null
-                                } ?: 0f,
+                                } ,
                                 probeName = data.probeName,
                                 probeCode = data.probeCode,
                                 status = if (e.cabinetDoorState == 0) {
@@ -111,13 +113,14 @@ class CabinetApiRepository(
 
     suspend fun reportLocaleData(data: CabinetDataJson) = cabinetApi.reportCabinetData(data)
 
-    suspend fun heartBeat() = try {
+    suspend fun heartBeat(data: List<Map<String, Any>>) = try {
         cabinetApi.heartBeat(
             mapOf(
                 "code" to preferenceManager.deviceID,
                 "updateTime" to sdf.format(System.currentTimeMillis()),
                 "deptId" to preferenceManager.deptID,
-                "appVersion" to AppUtils.getAppVersionName()
+                "appVersion" to AppUtils.getAppVersionName(),
+                "data" to data
             )
         )
     } catch (e: Exception) {
@@ -158,7 +161,7 @@ class CabinetApiRepository(
     )
 
     suspend fun clearChargingErrorAlarm(
-        doorNo: Int,probeCode: String
+        doorNo: Int, probeCode: String
     ) = reportAlarm(
         createTime = "", lastTime = "",
         type = "0",

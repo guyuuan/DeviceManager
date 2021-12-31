@@ -1,44 +1,14 @@
 package com.iknowmuch.devicemanager.ui.scene.home
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -58,19 +28,9 @@ import com.iknowmuch.devicemanager.R
 import com.iknowmuch.devicemanager.bean.CabinetDoor
 import com.iknowmuch.devicemanager.mqtt.MQTTStatus
 import com.iknowmuch.devicemanager.ui.LocalNavController
-import com.iknowmuch.devicemanager.ui.dialog.NetworkErrorDialog
-import com.iknowmuch.devicemanager.ui.dialog.ReturnProbeDialog
-import com.iknowmuch.devicemanager.ui.dialog.ScanView
-import com.iknowmuch.devicemanager.ui.dialog.UsingDialog
-import com.iknowmuch.devicemanager.ui.dialog.WXQRCodeDialog
+import com.iknowmuch.devicemanager.ui.dialog.*
 import com.iknowmuch.devicemanager.ui.scene.loading.LoadingViewModel
-import com.iknowmuch.devicemanager.ui.theme.BatteryColor
-import com.iknowmuch.devicemanager.ui.theme.BlueBrush
-import com.iknowmuch.devicemanager.ui.theme.DefaultBlackTextColor
-import com.iknowmuch.devicemanager.ui.theme.ErrorRed
-import com.iknowmuch.devicemanager.ui.theme.GreenBrush
-import com.iknowmuch.devicemanager.ui.theme.ThemeBlue
-import com.iknowmuch.devicemanager.ui.theme.UnabledBrush
+import com.iknowmuch.devicemanager.ui.theme.*
 import com.iknowmuch.devicemanager.utils.drawColorShadow
 
 /**
@@ -121,7 +81,7 @@ fun HomeScene(navController: NavController = LocalNavController.current) {
                 Modifier
                     .padding(horizontal = 18.dp)
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1f), viewModel
             )
             BottomButton(
                 mqStatus,
@@ -246,10 +206,15 @@ fun BottomButton(
 
 @ExperimentalFoundationApi
 @Composable
-fun CabinetDoorList(data: List<CabinetDoor>, modifier: Modifier = Modifier) {
+fun CabinetDoorList(
+    data: List<CabinetDoor>,
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel
+) {
     LazyVerticalGrid(cells = GridCells.Fixed(2), modifier = modifier) {
         itemsIndexed(data) { _, item ->
             CabinetDoorItem(
+                viewModel,
                 data = item, modifier = Modifier
                     .drawColorShadow(
                         color = ThemeBlue,
@@ -267,7 +232,7 @@ fun CabinetDoorList(data: List<CabinetDoor>, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
+fun CabinetDoorItem(viewModel: HomeViewModel, data: CabinetDoor, modifier: Modifier) {
     val boxModifier = when (data.status) {
         CabinetDoor.Status.Idle, CabinetDoor.Status.Booked -> {
             Modifier.background(
@@ -369,8 +334,10 @@ fun CabinetDoorItem(data: CabinetDoor, modifier: Modifier) {
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = if (data.availableTime != null) stringResource(R.string.text_available_time).format(
-                        data.availableTime.toInt()
+                    text = if (data.availableTime != null && data.status != CabinetDoor.Status.Error) stringResource(
+                        R.string.text_available_time
+                    ).format(
+                        viewModel.totalChargingTime - data.availableTime.toInt()
                     ) else
                         stringResource(id = R.string.text_empty_available_time),
                     style = MaterialTheme.typography.body1
